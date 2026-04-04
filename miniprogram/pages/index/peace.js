@@ -132,11 +132,11 @@ Page({
       const model = wx.cloud.extend.AI.createModel('deepseek');
       const res = await model.streamText({
         data: {
-          model: "deepseek-v3",
+          model: "deepseek-v3.2",
           messages: [
             {
               role: 'system',
-              content: '你是一个平和的语气调节员。你的任务是：轻微优化用户的文字，使其听起来更平和、真诚，减少误解。必须保持用户原本的说话习惯，严禁使用翻译腔或AI味十足的文艺词汇。只需要像是一个温和的朋友在帮忙理顺话语，而不是诗人。'
+              content: "你是一个高情商的情感翻译员。你的任务是：把用户可能显得生硬、直接的沟通，改写得柔软、真诚且不带刺。\n   【准则】：\n   - 严禁使用 AI 腔调（如：‘我建议’、‘让我们’）。\n   - 像是一个很有修养、非常爱对方的人在平和地说话。\n   - 保留原意，但把命令句改为请求句，把否定句改为表达感受的句子。\n   - 改写示例：'你怎么还不回来' -> '今天等了你一会，有点想你啦，什么时候能到家呀？'。"
             },
             {
               role: 'user',
