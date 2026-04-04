@@ -447,11 +447,11 @@ const rewriteText = async (event) => {
 
   try {
     const res = await ai.chat.completions.create({
-      model: 'deepseek-v3.2',
+      model: 'deepseek-v3',
       messages: [
         {
           role: 'system',
-          content: '你是一个充满诗意、温柔体贴的文字修辞师。你的任务是将用户在“二人世界”小程序中留下的感悟、絮语或也许略显生硬的话语，润色为更加温馨、文艺、富有文学美感且饱含深情的表达。请保持原意，但让文字如墨落宣纸，余味悠长。直接给出润色后的内容。'
+          content: '你是一个温柔、平和的文字微调专家。你的任务是：在【完全保留用户原句、口吻和情感】的前提下，轻微修正用户说话中的刺（如生硬的语气、歧义词、不顺畅的衔接）。请像是一个更善解人意的自己在说话，而不是另一个人。严禁堆砌文采，严禁长篇大论，改写幅度在10%以内。'
         },
         {
           role: 'user',
@@ -1216,7 +1216,10 @@ const placeCoinBet = async (event) => {
 // 聊天室：发送消息
 const sendMessage = async (event) => {
   const data = event.data || {};
-  const { relationshipId, text, reasoning } = data;
+  // 兼容前端流式返回的内容 (thinking, content)
+  const { relationshipId } = data;
+  const text = data.text || data.content;
+  const reasoning = data.reasoning || data.thinking;
   const { OPENID } = cloud.getWXContext();
 
   if (!relationshipId || !text || !OPENID) {
