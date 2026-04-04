@@ -63,6 +63,33 @@
     </view>
   </view>
 
+  <!-- 近期战报 -->
+  <view class="history-section" wx:if="{{gameHistory.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">近期战报</text>
+      <view class="section-line"></view>
+    </view>
+    
+    <view class="history-list">
+      <view class="history-item" wx:for="{{gameHistory}}" wx:key="_id">
+        <view class="history-info-top">
+          <text class="history-game-name">{{item.gameName}}</text>
+          <text class="history-date">{{item.dateStr}}</text>
+        </view>
+        <view class="history-info-bottom">
+          <view class="history-winner">
+            <text class="winner-label">胜者:</text>
+            <text class="winner-name">{{item.winner || '无'}}</text>
+          </view>
+          <view class="history-duration">
+            <text class="duration-label">耗时:</text>
+            <text class="duration-time">{{item.durationStr}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部印记 -->
   <view class="footer-seal">
     <text class="seal-text">手札·游乐场</text>

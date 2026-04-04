@@ -75,7 +75,10 @@ Page({
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
       data: {
-        type: 'getDailyQuestion'
+        type: 'getDailyQuestion',
+        data: {
+          relationshipId: this.data.relationshipId || ''
+        }
       }
     }).then(res => {
       if (res && res.result && res.result.success && res.result.question) {

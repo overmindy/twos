@@ -1,4 +1,5 @@
 const cloud = require("wx-server-sdk");
+const crypto = require('crypto');
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
 });
@@ -41,7 +42,8 @@ const createCollection = async () => {
     "gobang_games",
     "game_rooms",
     "game_history",
-    "game_words"
+    "game_words",
+    "messages"
   ];
 
   for (const collectionName of collections) {
@@ -174,6 +176,11 @@ const getDailyQuestion = async (event) => {
         const cqDate = new Date(cq.date);
         cqDate.setHours(0, 0, 0, 0);
         if (cqDate.getTime() === businessDate.getTime()) {
+           // 确保题目包含 _id 且稳定，防止回答时找不到 questionId
+           if (cq && cq.content) {
+             const hash = crypto.createHash('md5').update(cq.content).digest('hex');
+             cq._id = 'custom_' + hash;
+           }
            return { success: true, question: cq };
         }
       }
@@ -1059,6 +1066,53 @@ const updateScratchPoints = async (event) => {
   }
 };
 
+// 聊天室：发送消息
+const sendMessage = async (event) => {
+  const data = event.data || {};
+  const { relationshipId, text } = data;
+  const { OPENID } = cloud.getWXContext();
+
+  if (!relationshipId || !text || !OPENID) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    await db.collection('messages').add({
+      data: {
+        relationshipId,
+        senderOpenid: OPENID,
+        text,
+        type: 'text',
+        createTime: db.serverDate()
+      }
+    });
+    return { success: true };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 聊天室：清空记录
+const clearChatMessages = async (event) => {
+  const data = event.data || {};
+  const { relationshipId } = data;
+  const { OPENID } = cloud.getWXContext();
+
+  if (!relationshipId || !OPENID) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    const _ = db.command;
+    await db.collection('messages').where({
+      relationshipId
+    }).remove();
+    return { success: true };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
 // 云函数入口函数
 exports.main = async (event, context) => {
   switch (event.type) {
@@ -1116,5 +1170,9 @@ exports.main = async (event, context) => {
       return await closeGameRoom(event);
     case "updateScratchPoints":
       return await updateScratchPoints(event);
+    case "sendMessage":
+      return await sendMessage(event);
+    case "clearChatMessages":
+      return await clearChatMessages(event);
   }
 };

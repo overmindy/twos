@@ -110,9 +110,91 @@
 }
 
 .footer-seal {
-  margin-top: auto;
+  margin-top: 60rpx;
   padding-bottom: 60rpx;
   opacity: 0.3;
+}
+
+/* 近期战报样式 */
+.history-section {
+  width: 100%;
+  margin-top: 80rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+  gap: 20rpx;
+}
+
+.section-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 28rpx;
+  color: #888888;
+  white-space: nowrap;
+}
+
+.section-line {
+  flex: 1;
+  height: 1rpx;
+  background: #E0D8C0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.history-item {
+  background: #FFFFFF;
+  padding: 30rpx;
+  border: 1rpx dashed #E0D8C0;
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.history-info-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-game-name {
+  font-family: "Noto Serif SC", serif;
+  font-size: 28rpx;
+  color: #2F2F2F;
+  font-weight: 500;
+}
+
+.history-date {
+  font-size: 22rpx;
+  color: #AAAAAA;
+}
+
+.history-info-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-winner, .history-duration {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.winner-label, .duration-label {
+  font-size: 24rpx;
+  color: #888888;
+}
+
+.winner-name, .duration-time {
+  font-size: 24rpx;
+  color: #B22222;
+  font-weight: 500;
 }
 
 .seal-text {

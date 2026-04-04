@@ -48,7 +48,6 @@ Page({
     this.initBondingTree();
     this.initInkCanvas();
     this.fetchRelationship();
-    this.fetchTodayQuestion();
     
     // 确保用户底档存在
     wx.cloud.callFunction({
@@ -328,12 +327,13 @@ Page({
     const relationshipId = this.data.relationship ? this.data.relationship._id : '';
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
-      data: { 
+      data: {
         type: 'getDailyQuestion',
-        data: { relationshipId }
+        data: {
+          relationshipId: this.data.relationship ? this.data.relationship._id : ''
+        }
       }
-    }).then(res => {
-      if (res && res.result && res.result.success) {
+    }).then(res => {      if (res && res.result && res.result.success) {
         this.setData({ todayQuestion: res.result.question });
       }
     }).catch(err => {

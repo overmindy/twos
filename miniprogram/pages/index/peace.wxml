@@ -1,5 +1,8 @@
 <view class="container peace-room">
-  <view class="header serif-text ink-black">语气实验室 · 止戈室</view>
+  <view class="header serif-text ink-black">
+    <view class="title">语气实验室 · 止戈室</view>
+    <view class="clear-btn" bindtap="onClearHistory" title="焚化记录">🔥</view>
+  </view>
   
   <scroll-view 
     class="chat-history" 
@@ -18,7 +21,7 @@
         <view class="timestamp">{{item.time}}</view>
       </view>
     </view>
-    <view id="bottom-view"></view>
+    <view id="bottom-view" style="height: 20rpx;"></view>
   </scroll-view>
 
   <view class="input-area">
@@ -29,6 +32,7 @@
       bindinput="onInputChange"
       auto-height
       fixed
+      cursor-spacing="20"
       show-confirm-bar="{{false}}"
     />
     <button class="send-btn serif-text" bindtap="onSendClick">止戈</button>
