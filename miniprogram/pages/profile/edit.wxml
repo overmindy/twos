@@ -1,0 +1,35 @@
+<!-- miniprogram/pages/profile/edit.wxml -->
+<view class="container">
+  <view class="paper-texture"></view>
+  
+  <view class="edit-card">
+    <view class="edit-title ink-black">修身 (设置)</view>
+    <view class="edit-divider"></view>
+    
+    <view class="form-item">
+      <view class="label ink-black">容貌 (头像)</view>
+      <button class="avatar-wrapper" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar" src="{{userInfo.avatarUrl || '/images/icons/happy.png'}}"></image>
+      </button>
+      <view class="tip">点击印泥处更换</view>
+    </view>
+
+    <view class="form-item">
+      <view class="label ink-black">名讳 (昵称)</view>
+      <input type="nickname" class="nickname-input" placeholder="输入称谓..." value="{{userInfo.nickname}}" bindinput="onInputNickname" />
+    </view>
+
+    <view class="form-item">
+      <view class="label ink-black">当期心境 (心情)</view>
+      <textarea class="mood-input" placeholder="此刻在想什么..." value="{{userInfo.mood}}" bindinput="onInputMood" maxlength="40"></textarea>
+    </view>
+
+    <view class="btn-area">
+      <button class="save-btn" bindtap="saveProfile">镌刻 (保存)</button>
+    </view>
+  </view>
+  
+  <view class="footer">
+    <text>由“两只”情感同步系统 诚制</text>
+  </view>
+</view>

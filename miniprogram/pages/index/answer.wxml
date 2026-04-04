@@ -1,0 +1,154 @@
+<view class="container letter-sheet">
+  <!-- 录制中全屏蒙层与动态声波 -->
+  <view class="recording-mask" wx:if="{{isRecording}}" catchtap="onStopRecord">
+    <view class="dynamic-waves-full">
+      <view class="wave-item" style="height: 30%; animation-delay: 0.1s"></view>
+      <view class="wave-item" style="height: 50%; animation-delay: 0.3s"></view>
+      <view class="wave-item" style="height: 80%; animation-delay: 0.5s"></view>
+      <view class="wave-item" style="height: 60%; animation-delay: 0.2s"></view>
+      <view class="wave-item" style="height: 40%; animation-delay: 0.4s"></view>
+      <view class="wave-item" style="height: 70%; animation-delay: 0.1s"></view>
+      <view class="wave-item" style="height: 90%; animation-delay: 0.3s"></view>
+      <view class="wave-item" style="height: 50%; animation-delay: 0.5s"></view>
+    </view>
+    <view class="recording-stop-seal" catchtap="onStopRecord">
+      <view class="stop-seal-inner">
+        <text class="stop-text">止</text>
+      </view>
+      <text class="stop-hint">松开或点击停止</text>
+    </view>
+  </view>
+
+  <view class="paper-bg">
+    <!-- 方格纹背景装饰 -->
+    <view class="grid-layer"></view>
+    
+    <view class="content-wrapper">
+      <view class="date-header">{{today}}</view>
+      
+      <view class="question-section">
+        <view class="question-label">· 今日一问 ·</view>
+        <view class="question-text">{{question.content}}</view>
+      </view>
+
+      <view class="ink-divider"></view>
+
+      <view class="input-section">
+        <!-- 多模态工具栏 -->
+        <view class="mode-toolbar" wx:if="{{!isAnswered}}">
+          <view class="mode-item {{currentMode === 'text' ? 'active' : ''}}" bindtap="switchMode" data-mode="text">
+            <image class="mode-icon-img" src="../../images/icons/quill.png" mode="aspectFit"></image>
+          </view>
+          <view class="mode-item {{currentMode === 'voice' ? 'active' : ''}}" bindtap="switchMode" data-mode="voice">
+            <image class="mode-icon-img" src="../../images/icons/voice.png" mode="aspectFit"></image>
+          </view>
+          <view class="mode-item {{currentMode === 'image' ? 'active' : ''}}" bindtap="switchMode" data-mode="image">
+            <image class="mode-icon-img" src="../../images/icons/camera.png" mode="aspectFit"></image>
+          </view>
+        </view>
+
+        <!-- 文字输入 -->
+        <block wx:if="{{currentMode === 'text'}}">
+          <textarea 
+            class="ink-textarea" 
+            placeholder="在此落笔，双向奔赴..." 
+            bindinput="onInput" 
+            value="{{content}}"
+            maxlength="200"
+            focus="{{!isAnswered}}"
+            fixed="{{true}}"
+            cursor-spacing="100"
+            disabled="{{isAnswered}}"
+          ></textarea>
+          <view class="char-counter" wx:if="{{!isAnswered}}">{{content.length}}/200</view>
+        </block>
+
+        <!-- 极简语音录制展示 -->
+        <block wx:if="{{currentMode === 'voice'}}">
+          <view class="voice-section {{isAnswered ? 'answered' : ''}}">
+            <view class="voice-seal-wrapper">
+              <!-- 巨大的麦克风印章 -->
+              <view class="mic-seal {{isRecording ? 'pulse' : ''}} {{voicePath ? 'has-voice' : ''}}" 
+                    bindtap="{{!isAnswered ? 'onVoiceSealTap' : 'onPlayVoice'}}"
+                    longpress="{{!isAnswered ? 'onStartRecord' : ''}}"
+                    bindtouchend="{{!isAnswered && isRecording ? 'onStopRecord' : ''}}">
+                <view class="mic-seal-inner">
+                  <image class="mic-icon" src="../../images/icons/voice.png" mode="aspectFit"></image>
+                </view>
+              </view>
+              <view class="voice-hint" wx:if="{{!isAnswered}}">
+                {{voicePath ? '点击播放，长按重录' : '点击或长按研磨声纹'}}
+              </view>
+              <view class="voice-hint" wx:else>点击回响</view>
+
+              <!-- 已录制时的操作 -->
+              <view class="voice-actions" wx:if="{{voicePath && !isAnswered && !isRecording}}">
+                <view class="voice-action-mini" bindtap="onDeleteVoice">
+                  <text>抹除</text>
+                </view>
+              </view>
+            </view>
+            
+            <textarea 
+              class="ink-textarea voice-note" 
+              placeholder="为这段声音添上一抹注脚..." 
+              bindinput="onInput" 
+              value="{{content}}"
+              maxlength="100"
+              disabled="{{isAnswered}}"
+            ></textarea>
+          </view>
+        </block>
+
+        <!-- 图片上传展示 -->
+        <block wx:if="{{currentMode === 'image'}}">
+          <view class="image-section">
+            <view class="polaroid-frame">
+              <image wx:if="{{imagePath}}" src="{{imagePath}}" mode="aspectFill" class="polaroid-img" bindtap="onPreviewImage"></image>
+              <view wx:else class="polaroid-placeholder" bindtap="onUploadImage">
+                <text>在此裁切时光</text>
+              </view>
+              <view class="image-delete" wx:if="{{imagePath && !isAnswered}}" bindtap="onDeleteImage">×</view>
+            </view>
+            <textarea 
+              class="ink-textarea image-note" 
+              placeholder="纸短情长，注之以影..." 
+              bindinput="onInput" 
+              value="{{content}}"
+              maxlength="100"
+              disabled="{{isAnswered}}"
+            ></textarea>
+          </view>
+        </block>
+      </view>
+
+      <view class="footer-section">
+        <!-- 语气实验室 - 润 -->
+        <view class="ai-eraser-container" bindtap="onRewrite" wx:if="{{content.length > 0 && !isAnswered}}">
+          <view class="eraser-ring">
+            <view class="eraser-text">润</view>
+          </view>
+          <view class="eraser-hint">文笔润色</view>
+        </view>
+
+        <view class="seal-container" bindtap="onSubmit" wx:if="{{!isAnswered}}">
+          <view class="seal-ring">
+            <view class="seal-text">封</view>
+          </view>
+          <view class="seal-hint">封缄</view>
+        </view>
+
+        <!-- 已作答状态展示 -->
+        <view class="answered-seal-container" wx:if="{{isAnswered}}">
+          <view class="answered-seal">
+            <view class="seal-mark">已封缄</view>
+            <view class="seal-date">{{today}}</view>
+          </view>
+          <view class="privacy-toggle {{answerPrivacy === 'private' ? 'is-private' : ''}}" bindtap="onTogglePrivacy">
+            <text>{{answerPrivacy === 'private' ? '已隐去' : '显影'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

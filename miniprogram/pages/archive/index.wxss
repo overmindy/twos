@@ -1,0 +1,203 @@
+/* pages/archive/index.wxss */
+
+.archive-book {
+  padding: 40rpx 50rpx;
+  background-color: #FDFCF8;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.book-header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  border-bottom: 1rpx solid #E0D8C0;
+  padding-bottom: 30rpx;
+}
+
+.book-title {
+  font-size: 48rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  color: #2F2F2F;
+}
+
+.book-subtitle {
+  font-size: 20rpx;
+  color: #8C8C8C;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  margin-top: 10rpx;
+}
+
+.archive-scroll {
+  flex: 1;
+  overflow: hidden;
+}
+
+.archive-item {
+  margin-bottom: 60rpx;
+  position: relative;
+}
+
+.date-tag {
+  font-size: 24rpx;
+  color: #B22222; /* 红色朱砂印感 */
+  font-family: monospace;
+  margin-bottom: 20rpx;
+  opacity: 0.8;
+}
+
+.qa-pair {
+  padding-left: 20rpx;
+  border-left: 1rpx solid #E0D8C0;
+}
+
+.question-box {
+  margin-bottom: 30rpx;
+}
+
+.question-mark {
+  color: #8C8C8C;
+  font-size: 32rpx;
+}
+
+.question-content {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #2F2F2F;
+}
+
+.answers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.answer-item {
+  display: flex;
+  font-size: 28rpx;
+  line-height: 1.6;
+  align-items: flex-start;
+}
+
+.answer-label {
+  color: #8C8C8C;
+  min-width: 60rpx;
+  flex-shrink: 0;
+  margin-top: 4rpx;
+}
+
+.answer-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* 极简多模态显示 */
+.polaroid-mini {
+  width: 160rpx;
+  background: #FFFFFF;
+  padding: 8rpx 8rpx 32rpx 8rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.06);
+  border: 1rpx solid #E0D8C0;
+  transform: rotate(-1deg);
+}
+
+.polaroid-img-mini {
+  width: 100%;
+  height: 140rpx;
+  background: #F9F9F9;
+  display: block;
+}
+
+.voice-seal-mini {
+  width: 80rpx;
+  height: 80rpx;
+  border: 2rpx solid #B22222;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: rgba(178, 34, 34, 0.03);
+}
+
+.voice-seal-inner-mini {
+  width: 64rpx;
+  height: 64rpx;
+  border: 1rpx solid #B22222;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.5;
+}
+
+.mic-icon-mini {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.answer-text {
+  color: #444;
+  word-break: break-all;
+}
+
+.my-answer .answer-text {
+  color: #2F2F2F;
+}
+
+.partner-answer .answer-text {
+  color: #2F2F2F;
+  font-style: italic; /* 对方的字体稍作区别，类似草草记下的笔记 */
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #8C8C8C;
+  font-style: italic;
+}
+
+.private-hint {
+  font-style: italic;
+  font-size: 24rpx;
+  color: #8C8C8C;
+}
+
+.answer-content-wrapper.partner-private {
+  filter: blur(8rpx);
+  opacity: 0.6;
+}
+
+.answer-content-wrapper.my-private .answer-text {
+  color: #B22222;
+  opacity: 0.8;
+}
+
+.item-separator {
+  margin-top: 40rpx;
+  height: 2rpx;
+  background: radial-gradient(circle, #E0D8C0 0%, transparent 70%);
+  width: 100%;
+}
+
+.loading-state, .empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  color: #8C8C8C;
+  font-size: 28rpx;
+  font-style: italic;
+}
+
+.book-footer {
+  text-align: center;
+  padding-top: 30rpx;
+  font-size: 22rpx;
+  color: #E0D8C0;
+  letter-spacing: 2rpx;
+}

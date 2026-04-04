@@ -32,60 +32,75 @@ const getMiniProgramCode = async () => {
 
 // 创建集合
 const createCollection = async () => {
+  const collections = [
+    "relationships",
+    "daily_questions",
+    "answers",
+    "users",
+    "games",
+    "gobang_games",
+    "game_rooms",
+    "game_history",
+    "game_words"
+  ];
+
+  for (const collectionName of collections) {
+    try {
+      await db.createCollection(collectionName);
+    } catch (e) {
+      // 捕获“集合已存在”等非致命错误
+    }
+  }
+
   try {
-    // 创建集合
-    await db.createCollection("sales");
-    await db.createCollection("relationships");
-    await db.createCollection("daily_questions");
-    await db.createCollection("answers");
-    await db.createCollection("users");
-    await db.createCollection("games");
+    // 初始化 game_words 如果为空
+    const { total } = await db.collection("game_words").count();
+    if (total === 0) {
+      const initialWords = [
+        { word: "苹果", category: "水果", difficulty: "easy" },
+        { word: "大象", category: "动物", difficulty: "easy" },
+        { word: "自行车", category: "交通工具", difficulty: "medium" },
+        { word: "仙人掌", category: "植物", difficulty: "medium" },
+        { word: "钢琴", category: "乐器", difficulty: "hard" },
+        { word: "长城", category: "名胜", difficulty: "medium" },
+        { word: "蜘蛛侠", category: "角色", difficulty: "easy" },
+        { word: "火锅", category: "食物", difficulty: "easy" },
+        { word: "埃菲尔铁塔", category: "建筑", difficulty: "hard" },
+        { word: "企鹅", category: "动物", difficulty: "easy" },
+        { word: "篮球", category: "运动", difficulty: "easy" },
+        { word: "彩虹", category: "自然", difficulty: "easy" },
+        { word: "雨伞", category: "物品", difficulty: "easy" },
+        { word: "汉堡包", category: "食物", difficulty: "easy" },
+        { word: "吉他", category: "乐器", difficulty: "medium" },
+        { word: "直升机", category: "交通工具", difficulty: "hard" },
+        { word: "自由女神像", category: "建筑", difficulty: "hard" },
+        { word: "西瓜", category: "水果", difficulty: "easy" },
+        { word: "老虎", category: "动物", difficulty: "easy" },
+        { word: "小提琴", category: "乐器", difficulty: "hard" }
+      ];
 
-    // 初始化一个默认问题
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    await db.collection("daily_questions").add({
-      data: {
-        content: "如果余生只能共度一个午后，你希望我们在哪里度过？",
-        date: today,
-        createTime: db.serverDate()
+      for (const word of initialWords) {
+        await db.collection("game_words").add({ data: word });
       }
-    });
+    }
 
-    await db.collection("sales").add({
-      // data 字段表示需新增的 JSON 数据
-      data: {
-        region: "华东",
-        city: "上海",
-        sales: 11,
-      },
-    });
-    await db.collection("sales").add({
-      // data 字段表示需新增的 JSON 数据
-      data: {
-        region: "华东",
-        city: "南京",
-        sales: 11,
-      },
-    });
-    await db.collection("sales").add({
-      // data 字段表示需新增的 JSON 数据
-      data: {
-        region: "华南",
-        city: "广州",
-        sales: 22,
-      },
-    });
-    await db.collection("sales").add({
-      // data 字段表示需新增的 JSON 数据
-      data: {
-        region: "华南",
-        city: "深圳",
-        sales: 22,
-      },
-    });
+    // 初始化一个默认问题（如果 daily_questions 为空）
+    const { total: qTotal } = await db.collection("daily_questions").count();
+    if (qTotal === 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      await db.collection("daily_questions").add({
+        data: {
+          content: "如果余生只能共度一个午后，你希望我们在哪里度过？",
+          date: today,
+          createTime: db.serverDate()
+        }
+      });
+    }
+
     return {
       success: true,
+      message: "初始化完成"
     };
   } catch (e) {
     // 这里catch到的是该collection已经存在，从业务逻辑上来说是运行成功的，所以catch返回success给前端，避免工具在前端抛出异常
@@ -96,92 +111,15 @@ const createCollection = async () => {
   }
 };
 
-// 查询数据
-const selectRecord = async () => {
-  // 返回数据库查询结果
-  return await db.collection("sales").get();
-};
-
-// 更新数据
-const updateRecord = async (event) => {
-  const data = event.data || [];
-  try {
-    // 遍历修改数据库信息
-    for (let i = 0; i < data.length; i++) {
-      await db
-        .collection("sales")
-        .where({
-          _id: data[i]._id,
-        })
-        .update({
-          data: {
-            sales: data[i].sales,
-          },
-        });
-    }
-    return {
-      success: true,
-      data: data,
-    };
-  } catch (e) {
-    return {
-      success: false,
-      errMsg: e,
-    };
-  }
-};
-
-// 新增数据
-const insertRecord = async (event) => {
-  const data = event.data || {};
-  try {
-    const insertRecord = data;
-    // 插入数据
-    await db.collection("sales").add({
-      data: {
-        region: insertRecord.region,
-        city: insertRecord.city,
-        sales: Number(insertRecord.sales),
-      },
-    });
-    return {
-      success: true,
-      data: data,
-    };
-  } catch (e) {
-    return {
-      success: false,
-      errMsg: e,
-    };
-  }
-};
-
-// 删除数据
-const deleteRecord = async (event) => {
-  const data = event.data || {};
-  try {
-    await db
-      .collection("sales")
-      .where({
-        _id: data._id,
-      })
-      .remove();
-    return {
-      success: true,
-    };
-  } catch (e) {
-    return {
-      success: false,
-      errMsg: e,
-    };
-  }
-};
-
 // 绑定双人关联
 const linkRelationship = async (event) => {
   const data = event.data || {};
   const { inviterId } = data;
   const { OPENID } = cloud.getWXContext();
+
+  if (!OPENID) {
+    return { success: false, errMsg: '身份校验失败' };
+  }
 
   if (!inviterId || inviterId === OPENID) {
     return { success: false, errMsg: '无效的邀请人 ID' };
@@ -218,24 +156,111 @@ const linkRelationship = async (event) => {
 };
 
 // 获取今日一问
-const getDailyQuestion = async () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+const getDailyQuestion = async (event) => {
+  const data = (event && event.data) || {};
+  const { relationshipId } = data;
+  
+  // 业务日期：当前时间减去 4 小时
+  const now = new Date();
+  const businessDate = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  businessDate.setHours(0, 0, 0, 0);
   
   try {
-    const { data } = await db.collection('daily_questions')
+    // 1. 优先检查自定义题目 (relationships 中存储的 customQuestion)
+    if (relationshipId) {
+      const { data: relData } = await db.collection('relationships').doc(relationshipId).get();
+      if (relData && relData.customQuestion) {
+        const cq = relData.customQuestion;
+        const cqDate = new Date(cq.date);
+        cqDate.setHours(0, 0, 0, 0);
+        if (cqDate.getTime() === businessDate.getTime()) {
+           return { success: true, question: cq };
+        }
+      }
+    }
+
+    // 2. 读取 daily_questions 中的题目
+    const { data: qData } = await db.collection('daily_questions')
       .where({
-        date: db.command.gte(today).and(db.command.lt(new Date(today.getTime() + 24 * 60 * 60 * 1000)))
+        date: db.command.gte(businessDate).and(db.command.lt(new Date(businessDate.getTime() + 24 * 60 * 60 * 1000)))
       })
       .get();
     
-    if (data.length > 0) {
-      return { success: true, question: data[0] };
+    if (qData.length > 0) {
+      return { success: true, question: qData[0] };
     } else {
       // 兜底：如果今日没有指定问题，可以随机取一个或者返回默认
       const { data: allQuestions } = await db.collection('daily_questions').get();
-      return { success: true, question: allQuestions[0] || { content: '今天想对 ta 说点什么？' } };
+      const randomIndex = allQuestions.length > 0 ? Math.floor(Math.random() * allQuestions.length) : 0;
+      return { success: true, question: allQuestions[randomIndex] || { _id: 'default', content: '今天想对 ta 说点什么？' } };
     }
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 刷新今日题目
+const refreshDailyQuestion = async (event) => {
+  const data = event.data || {};
+  const { relationshipId } = data;
+  if (!relationshipId) return { success: false, errMsg: '未指定书卷' };
+
+  const now = new Date();
+  const businessDate = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  businessDate.setHours(0, 0, 0, 0);
+
+  try {
+    // 随机取一个题目
+    const { data: allQuestions } = await db.collection('daily_questions').get();
+    if (allQuestions.length === 0) return { success: false, errMsg: '题库空空如也' };
+    
+    const randomIndex = Math.floor(Math.random() * allQuestions.length);
+    const newQuestion = allQuestions[randomIndex];
+    
+    // 标记为自定义并带上业务日期
+    const customQuestion = {
+      ...newQuestion,
+      date: businessDate,
+      isCustom: true
+    };
+
+    await db.collection('relationships').doc(relationshipId).update({
+      data: {
+        customQuestion: customQuestion
+      }
+    });
+
+    return { success: true, question: customQuestion };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 设置自定义题目
+const setCustomQuestion = async (event) => {
+  const data = event.data || {};
+  const { relationshipId, content } = data;
+  if (!relationshipId || !content) return { success: false, errMsg: '参数缺失' };
+
+  const now = new Date();
+  const businessDate = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  businessDate.setHours(0, 0, 0, 0);
+
+  try {
+    const customQuestion = {
+      _id: 'custom_' + Date.now(),
+      content: content,
+      date: businessDate,
+      isCustom: true
+    };
+
+    await db.collection('relationships').doc(relationshipId).update({
+      data: {
+        customQuestion: customQuestion
+      }
+    });
+
+    return { success: true, question: customQuestion };
   } catch (e) {
     return { success: false, errMsg: e.message };
   }
@@ -246,6 +271,10 @@ const submitAnswer = async (event) => {
   const data = event.data || {};
   const { questionId, relationshipId, content, type, mediaUrl, isSolo } = data;
   const { OPENID } = cloud.getWXContext();
+
+  if (!OPENID) {
+    return { success: false, errMsg: '身份校验失败' };
+  }
 
   if (!questionId) {
     return { success: false, errMsg: '参数缺失' };
@@ -333,7 +362,8 @@ const getHistoryAnswers = async (event) => {
           openid: '$openid',
           content: '$content',
           type: '$type',
-          mediaUrl: '$mediaUrl'
+          mediaUrl: '$mediaUrl',
+          privacy: '$privacy'
         })
       })
       .sort({
@@ -352,6 +382,10 @@ const checkAnswerStatus = async (event) => {
   const data = event.data || {};
   const { questionId, relationshipId, mode } = data;
   const { OPENID } = cloud.getWXContext();
+
+  if (!OPENID) {
+    return { success: false, errMsg: '身份校验失败' };
+  }
 
   if (!questionId) {
     return { success: false, errMsg: '参数缺失' };
@@ -409,6 +443,10 @@ const updateUserInfo = async (event) => {
   const { userInfo } = data;
   const { OPENID } = cloud.getWXContext();
 
+  if (!OPENID) {
+    return { success: false, errMsg: '身份校验失败' };
+  }
+
   if (!userInfo) {
     return { success: false, errMsg: '用户信息缺失' };
   }
@@ -417,9 +455,11 @@ const updateUserInfo = async (event) => {
     const infoUpdate = {
       updateTime: db.serverDate()
     };
+    // 统一使用 nickname (全小写)
     if (userInfo.nickname !== undefined) infoUpdate.nickname = userInfo.nickname;
     if (userInfo.avatarUrl !== undefined) infoUpdate.avatarUrl = userInfo.avatarUrl;
     if (userInfo.mood !== undefined) infoUpdate.mood = userInfo.mood;
+    if (userInfo.location !== undefined) infoUpdate.location = userInfo.location;
 
     // 1. 更新 users 集合
     const { data: users } = await db.collection('users').where({ _openid: OPENID }).get();
@@ -453,6 +493,12 @@ const updateUserInfo = async (event) => {
       updateB['userBInfo.mood'] = userInfo.mood;
       updateB.userBMood = userInfo.mood;
     }
+    if (userInfo.location !== undefined) {
+      updateA['userAInfo.location'] = userInfo.location;
+      updateA.userALocation = userInfo.location;
+      updateB['userBInfo.location'] = userInfo.location;
+      updateB.userBLocation = userInfo.location;
+    }
 
     // 更新作为 userA 的关系
     await db.collection('relationships').where({
@@ -472,6 +518,7 @@ const updateUserInfo = async (event) => {
 
     return { success: true };
   } catch (e) {
+    console.error('updateUserInfo failed', e);
     return { success: false, errMsg: e.message };
   }
 };
@@ -479,6 +526,11 @@ const updateUserInfo = async (event) => {
 // 解绑并归档关系
 const unbindRelationship = async (event) => {
   const { OPENID } = cloud.getWXContext();
+
+  if (!OPENID) {
+    return { success: false, errMsg: '身份校验失败' };
+  }
+
   const _ = db.command;
 
   try {
@@ -515,6 +567,10 @@ const toggleAnswerPrivacy = async (event) => {
   const { answerId } = data;
   const { OPENID } = cloud.getWXContext();
 
+  if (!OPENID) {
+    return { success: false, errMsg: '身份校验失败' };
+  }
+
   if (!answerId) {
     return { success: false, errMsg: '参数缺失' };
   }
@@ -541,14 +597,52 @@ const toggleAnswerPrivacy = async (event) => {
   }
 };
 
+// 确保用户记录存在 (初始化用户)
+const ensureUserRecord = async (event) => {
+  const { OPENID } = cloud.getWXContext();
+  if (!OPENID) return { success: false, errMsg: '未获取到 OPENID' };
+
+  try {
+    // 检查集合是否存在，如果报错说明集合未创建
+    let users;
+    try {
+      const res = await db.collection('users').where({ _openid: OPENID }).get();
+      users = res.data;
+    } catch (e) {
+      // 如果报错，尝试重新创建集合
+      await createCollection();
+      const res = await db.collection('users').where({ _openid: OPENID }).get();
+      users = res.data;
+    }
+
+    if (!users || users.length === 0) {
+      await db.collection('users').add({
+        data: {
+          _openid: OPENID,
+          nickname: '旅人',
+          avatarUrl: '', 
+          mood: 'happy',
+          createTime: db.serverDate(),
+          updateTime: db.serverDate()
+        }
+      });
+      console.log('New user record created for:', OPENID);
+    }
+    return { success: true };
+  } catch (e) {
+    console.error('ensureUserRecord fatal error:', e);
+    return { success: false, errMsg: e.message };
+  }
+}
+
 // 抛硬币 (云端共识)
 const flipCoin = async (event) => {
   const data = event.data || {};
   const { relationshipId } = data;
   const { OPENID } = cloud.getWXContext();
 
-  if (!relationshipId) {
-    return { success: false, errMsg: '参数缺失' };
+  if (!relationshipId || !OPENID) {
+    return { success: false, errMsg: '参数缺失或身份无效' };
   }
 
   try {
@@ -566,6 +660,179 @@ const flipCoin = async (event) => {
     });
 
     return { success: true, result };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 获取用户信息
+const getUserInfo = async (event) => {
+  const { OPENID } = cloud.getWXContext();
+  if (!OPENID) return { success: false, errMsg: '身份校验失败' };
+
+  try {
+    const { data } = await db.collection('users').where({ _openid: OPENID }).get();
+    if (data.length > 0) {
+      return { success: true, userInfo: data[0] };
+    } else {
+      return { success: true, userInfo: null };
+    }
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+}
+
+// 获取当前活跃关系
+const getActiveRelationship = async (event) => {
+  const { OPENID } = cloud.getWXContext();
+  if (!OPENID) return { success: false, errMsg: '身份校验失败' };
+
+  try {
+    const _ = db.command;
+    const { data } = await db.collection('relationships').where(_.and([
+      _.or([
+        { userA: OPENID },
+        { userB: OPENID }
+      ]),
+      { status: 'active' }
+    ])).get();
+
+    if (data.length > 0) {
+      return { success: true, relationship: data[0] };
+    } else {
+      return { success: true, relationship: null };
+    }
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+}
+
+// 初始化五子棋游戏
+const initGobang = async (event) => {
+  const { relationshipId } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!relationshipId || !OPENID) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    // 获取关系信息以确定白棋玩家（对手）
+    const { data: rel } = await db.collection('relationships').doc(relationshipId).get();
+    if (!rel) return { success: false, errMsg: '关系不存在' };
+    
+    const whitePlayer = rel.userA === OPENID ? rel.userB : rel.userA;
+
+    // 创建 15x15 的矩阵
+    const board = Array(15).fill(null).map(() => Array(15).fill(null));
+    
+    const gameData = {
+      relationshipId,
+      board,
+      currentTurn: 'black',
+      blackPlayer: OPENID, // 发起者默认黑棋
+      whitePlayer,
+      status: 'playing',
+      createTime: db.serverDate(),
+      lastUpdateTime: db.serverDate()
+    };
+
+    // 检查是否已有正在进行的五子棋游戏
+    const { data: existingGames } = await db.collection('gobang_games').where({
+      relationshipId,
+      status: 'playing'
+    }).get();
+
+    if (existingGames.length > 0) {
+      // 更新现有游戏
+      await db.collection('gobang_games').doc(existingGames[0]._id).update({
+        data: gameData
+      });
+      return { success: true, gameId: existingGames[0]._id };
+    } else {
+      // 创建新游戏
+      const res = await db.collection('gobang_games').add({
+        data: gameData
+      });
+      return { success: true, gameId: res._id };
+    }
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 五子棋胜负检查辅助函数
+const checkGobangWin = (board, x, y, color) => {
+  const directions = [
+    [[0, 1], [0, -1]], // 水平
+    [[1, 0], [-1, 0]], // 垂直
+    [[1, 1], [-1, -1]], // 主对角线
+    [[1, -1], [-1, 1]]  // 副对角线
+  ];
+
+  for (const dir of directions) {
+    let count = 1;
+    for (const [dx, dy] of dir) {
+      let nx = x + dx;
+      let ny = y + dy;
+      while (nx >= 0 && nx < 15 && ny >= 0 && ny < 15 && board[nx][ny] === color) {
+        count++;
+        nx += dx;
+        ny += dy;
+      }
+    }
+    if (count >= 5) return true;
+  }
+  return false;
+};
+
+// 下五子棋
+const placeGobangPiece = async (event) => {
+  const { gameId, x, y } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!gameId || x === undefined || y === undefined) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    const { data: game } = await db.collection('gobang_games').doc(gameId).get();
+    if (!game) return { success: false, errMsg: '游戏不存在' };
+    if (game.status !== 'playing') return { success: false, errMsg: '游戏已结束' };
+
+    // 权限与回合检查
+    const isBlack = game.blackPlayer === OPENID;
+    const isWhite = game.whitePlayer === OPENID;
+    
+    if (!isBlack && !isWhite) return { success: false, errMsg: '你不是这局游戏的玩家' };
+    if (game.currentTurn === 'black' && !isBlack) return { success: false, errMsg: '还没轮到你' };
+    if (game.currentTurn === 'white' && !isWhite) return { success: false, errMsg: '还没轮到你' };
+
+    if (game.board[x][y]) return { success: false, errMsg: '这里已经有棋子了' };
+
+    const color = game.currentTurn;
+    const newBoard = game.board;
+    newBoard[x][y] = color;
+    
+    const win = checkGobangWin(newBoard, x, y, color);
+    
+    const updateData = {
+      board: newBoard,
+      lastUpdateTime: db.serverDate()
+    };
+    
+    if (win) {
+      updateData.status = 'won';
+      updateData.winner = color;
+    } else {
+      updateData.currentTurn = color === 'black' ? 'white' : 'black';
+    }
+
+    await db.collection('gobang_games').doc(gameId).update({
+      data: updateData
+    });
+
+    return { success: true, win, winner: win ? color : null };
   } catch (e) {
     return { success: false, errMsg: e.message };
   }
@@ -591,7 +858,11 @@ exports.main = async (event, context) => {
     case "linkRelationship":
       return await linkRelationship(event);
     case "getDailyQuestion":
-      return await getDailyQuestion();
+      return await getDailyQuestion(event);
+    case "refreshDailyQuestion":
+      return await refreshDailyQuestion(event);
+    case "setCustomQuestion":
+      return await setCustomQuestion(event);
     case "submitAnswer":
       return await submitAnswer(event);
     case "getHistoryAnswers":
@@ -608,5 +879,15 @@ exports.main = async (event, context) => {
       return await toggleAnswerPrivacy(event);
     case "flipCoin":
       return await flipCoin(event);
+    case "ensureUserRecord":
+      return await ensureUserRecord(event);
+    case "getUserInfo":
+      return await getUserInfo(event);
+    case "getActiveRelationship":
+      return await getActiveRelationship(event);
+    case "initGobang":
+      return await initGobang(event);
+    case "placeGobangPiece":
+      return await placeGobangPiece(event);
   }
 };

@@ -1,0 +1,146 @@
+<!--index.wxml-->
+<view class="container">
+  <!-- 背景：羁绊之树 (Canvas) -->
+  <canvas type="2d" id="bondingTree" class="tree-canvas"></canvas>
+  <canvas type="2d" id="inkCanvas" class="ink-canvas"></canvas>
+
+  <!-- 气象站 UI (Weather Station) -->
+  <view class="weather-station" wx:if="{{relationship}}" bindtap="onTapWeatherStation">
+    <view class="station-item">
+      <image class="station-icon-img" src="../../images/icons/quill.png" mode="aspectFit"></image>
+      <text class="station-text">{{weatherInfo.distance}} km</text>
+    </view>
+    <view class="station-item">
+      <image class="station-icon-img" src="../../images/icons/{{weatherInfo.partnerMoodIcon}}.png" mode="aspectFit" wx:if="{{weatherInfo.partnerMoodIcon}}"></image>
+      <text class="station-text">{{weatherInfo.partnerMoodLabel}} ({{weatherInfo.partnerNickname}})</text>
+    </view>
+    <view class="station-item" wx:if="{{weatherInfo.myMoodIcon}}">
+      <image class="station-icon-img" src="../../images/icons/{{weatherInfo.myMoodIcon}}.png" mode="aspectFit"></image>
+      <text class="station-text">{{weatherInfo.myMoodLabel}} ({{weatherInfo.myNickname}})</text>
+    </view>
+  </view>
+  
+  <!-- 心情选择弹窗 (Mood Selection Modal) -->
+  <view class="mood-modal-mask" wx:if="{{showMoodModal}}" bindtap="onCloseMoodModal">
+    <view class="mood-modal-content" catchtap="stopBubbling">
+      <view class="mood-modal-header">
+        <text class="mood-modal-title">此刻心情</text>
+        <view class="mood-modal-divider"></view>
+      </view>
+      <view class="mood-list">
+        <view class="mood-item" wx:for="{{moodList}}" wx:key="label" bindtap="selectMood" data-mood="{{item}}">
+          <image class="mood-item-icon-img" src="../../images/icons/{{item.icon}}.png" mode="aspectFit"></image>
+          <text class="mood-item-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 核心交互：每日一问卡片 (Folded Paper) -->
+  <view class="paper-stack">
+    <!-- 侧边辅助：刷新与出题入口 (仅未答题前可见) -->
+    <view class="side-controls" wx:if="{{!isUnfolding && !myAnswer && relationship}}">
+      <view class="side-seal refresh" bindtap="refreshQuestion">
+        <image class="side-seal-icon" src="../../images/icons/happy.png" mode="aspectFit"></image>
+        <text class="side-seal-text">换一题</text>
+      </view>
+      <view class="side-seal custom" bindtap="showCustomQuestionInput">
+        <image class="side-seal-icon" src="../../images/icons/quill.png" mode="aspectFit"></image>
+        <text class="side-seal-text">我想出题</text>
+      </view>
+    </view>
+
+    <view class="paper {{isUnfolding ? 'unfolding' : 'folded'}}" bindtap="onTapPaper">
+      <view class="paper-content">
+        <view class="date-seal">{{todayChineseDate}}</view>
+        
+        <block wx:if="{{!isUnfolding}}">
+          <view class="memo-title">今日之问</view>
+          <view class="question-preview">{{todayQuestion.content}}</view>
+          <view class="status-hint">
+            <text wx:if="{{!myAnswer}}">点击落笔...</text>
+            <text wx:elif="{{!partnerAnswer}}">等待回音...</text>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="unfolded-content">
+            <view class="question-full">{{todayQuestion.content}}</view>
+            <view class="comparison-view">
+              <!-- 我的回答 -->
+              <view class="answer-column">
+                <view class="user-label">我</view>
+                <view class="answer-content-wrapper {{myAnswer.privacy === 'private' ? 'my-private' : ''}}">
+                  <!-- 图片展示 -->
+                  <view class="polaroid-mini" wx:if="{{myAnswer.type === 'image'}}" bindtap="onPreviewAnswerImage" data-url="{{myAnswer.mediaUrl}}">
+                    <image class="polaroid-img-mini" src="{{myAnswer.mediaUrl}}" mode="aspectFill"></image>
+                  </view>
+                  <!-- 语音展示 -->
+                  <view class="voice-seal-mini" wx:if="{{myAnswer.type === 'voice'}}" bindtap="onPlayAnswerVoice" data-url="{{myAnswer.mediaUrl}}">
+                    <view class="voice-seal-inner-mini">
+                      <image class="mic-icon-mini" src="../../images/icons/voice.png" mode="aspectFit"></image>
+                    </view>
+                  </view>
+                  <!-- 文字展示 -->
+                  <view class="answer-text" wx:if="{{myAnswer.content}}">{{myAnswer.content}}</view>
+                </view>
+              </view>
+
+              <view class="divider-line"></view>
+
+              <!-- 对方回答 -->
+              <view class="answer-column">
+                <view class="user-label">Ta</view>
+                <view class="answer-content-wrapper {{partnerAnswer.privacy === 'private' ? 'partner-private' : ''}}">
+                  <block wx:if="{{partnerAnswer.privacy !== 'private'}}">
+                    <!-- 图片展示 -->
+                    <view class="polaroid-mini" wx:if="{{partnerAnswer.type === 'image'}}" bindtap="onPreviewAnswerImage" data-url="{{partnerAnswer.mediaUrl}}">
+                      <image class="polaroid-img-mini" src="{{partnerAnswer.mediaUrl}}" mode="aspectFill"></image>
+                    </view>
+                    <!-- 语音展示 -->
+                    <view class="voice-seal-mini" wx:if="{{partnerAnswer.type === 'voice'}}" bindtap="onPlayAnswerVoice" data-url="{{partnerAnswer.mediaUrl}}">
+                      <view class="voice-seal-inner-mini">
+                        <image class="mic-icon-mini" src="../../images/icons/voice.png" mode="aspectFit"></image>
+                      </view>
+                    </view>
+                    <!-- 文字展示 -->
+                    <view class="answer-text" wx:if="{{partnerAnswer.content}}">{{partnerAnswer.content}}</view>
+                    <view class="empty-hint" wx:if="{{!partnerAnswer.content && !partnerAnswer.mediaUrl}}">无声的默契</view>
+                  </block>
+                  <block wx:else>
+                    <view class="private-hint">墨迹已隐...</view>
+                  </block>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部印章：共振 -->
+  <view class="resonance-btn" bindtouchstart="onResonanceStart" bindtouchend="onResonanceEnd">
+    <view class="seal-icon">心</view>
+    <view class="seal-text">共振</view>
+  </view>
+
+  <!-- 能量显示与预览 (Energy Display & Preview) -->
+  <view class="energy-label-container" wx:if="{{relationship}}">
+    <view class="energy-tag">
+      <text class="energy-value">能量: {{relationship.energy || 0}}</text>
+    </view>
+    <view class="preview-entry" bindtap="onPreviewGrowth">
+      <image class="preview-icon-img" src="../../images/icons/hourglass.png" mode="aspectFit"></image>
+      <text class="preview-text">预见未来</text>
+    </view>
+    <view class="peace-room-entry" bindtap="onGoToPeaceRoom">
+      <image class="chat-icon-img" src="../../images/icons/chat.png" mode="aspectFit"></image>
+      <text class="chat-text">止戈室</text>
+    </view>
+    <view class="games-entry" bindtap="onGoToGames">
+      <image class="games-icon-img" src="../../images/icons/game.png" mode="aspectFit"></image>
+      <text class="games-text">游乐场</text>
+    </view>
+  </view>
+</view>

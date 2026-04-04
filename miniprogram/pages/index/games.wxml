@@ -1,0 +1,55 @@
+<view class="container">
+  <!-- 背景艺术：信纸边框或晕染 (可选) -->
+  <view class="paper-title-container">
+    <text class="page-title">手札游戏</text>
+    <view class="title-underline"></view>
+  </view>
+
+  <view class="game-list">
+    <!-- 纸上抛硬币 -->
+    <view class="game-card" bindtap="goToCoinFlip">
+      <view class="card-inner">
+        <view class="game-icon">
+          <image class="game-icon-img" src="../../images/icons/hourglass.png" mode="aspectFit"></image>
+        </view>
+        <view class="game-info">
+          <text class="game-name">纸上抛硬币</text>
+          <text class="game-desc">墨色一掷，听天由命的温柔</text>
+        </view>
+        <view class="arrow-seal">印</view>
+      </view>
+    </view>
+
+    <!-- 纸上五子棋 -->
+    <view class="game-card" bindtap="goToGobang">
+      <view class="card-inner">
+        <view class="game-icon">
+          <image class="game-icon-img" src="../../images/icons/game.png" mode="aspectFit"></image>
+        </view>
+        <view class="game-info">
+          <text class="game-name">纸上五子棋</text>
+          <text class="game-desc">横竖经纬间，落子皆是你</text>
+        </view>
+        <view class="arrow-seal">印</view>
+      </view>
+    </view>
+
+    <!-- 默契刮刮乐 (预留) -->
+    <view class="game-card locked">
+      <view class="card-inner">
+        <view class="game-icon">
+          <image class="game-icon-img" src="../../images/icons/quill.png" mode="aspectFit"></image>
+        </view>
+        <view class="game-info">
+          <text class="game-name">默契刮刮乐</text>
+          <text class="game-desc">刮开纸上的秘密，同步心跳 (敬请期待)</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部印记 -->
+  <view class="footer-seal">
+    <text class="seal-text">手札·游乐场</text>
+  </view>
+</view>

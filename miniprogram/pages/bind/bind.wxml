@@ -1,0 +1,9 @@
+<view class="container">
+  <view class="card">
+    <view class="seal">印</view>
+    <view class="title">两只(TWOS)</view>
+    <view class="content">诚邀您共同书写私人手札</view>
+    <button class="btn-bind" open-type="share">发送邀请</button>
+    <view class="hint" wx:if="{{isInvited}}">正在绑定中...</view>
+  </view>
+</view>

@@ -1,0 +1,95 @@
+<!-- pages/profile/index.wxml -->
+<view class="container">
+  <view class="paper-texture"></view>
+  
+  <view class="bond-header">
+    <view class="avatar-container {{relationship ? 'linked' : 'solo'}}">
+      <!-- 我 -->
+      <view class="avatar-item me">
+        <view class="ink-frame-wrapper">
+          <image class="avatar-img" src="{{userInfo.avatarUrl || '/images/icons/happy.png'}}" mode="aspectFill"></image>
+          <view class="ink-frame"></view>
+        </view>
+        <text class="avatar-name">{{userInfo.nickname || '旅人'}}</text>
+      </view>
+
+      <!-- 缘丝 (仅绑定时显示) -->
+      <view class="yuan-si" wx:if="{{relationship}}">
+        <view class="red-line-wrapper">
+          <view class="red-line"></view>
+          <view class="energy-tag">能量 {{relationship.energy || 0}}</view>
+        </view>
+      </view>
+
+      <!-- TA (仅绑定时显示) -->
+      <view class="avatar-item partner" wx:if="{{relationship}}">
+        <view class="ink-frame-wrapper">
+          <image class="avatar-img" src="{{partnerInfo.avatarUrl || '/images/icons/happy.png'}}" mode="aspectFill"></image>
+          <view class="ink-frame"></view>
+        </view>
+        <text class="avatar-name">{{partnerInfo.nickname}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="seal-wall">
+    <!-- 装饰性墨迹 -->
+    <view class="decoration-ink" style="top: 15%; left: 35%; opacity: 0.05;"></view>
+    <view class="decoration-ink" style="top: 55%; right: 25%; opacity: 0.08;"></view>
+
+    <!-- 连/合 印章 (绑定状态) - 朱砂红 -->
+    <view class="seal-group">
+      <view class="seal-item seal-vermilion" bindtap="onTapBind">
+        <view class="seal-content">{{ relationship ? '合' : '连' }}</view>
+      </view>
+      <text class="seal-label">结缘</text>
+    </view>
+
+    <!-- 个人设置印章 - 墨黑 -->
+    <view class="seal-row">
+      <view class="seal-group">
+        <view class="seal-item seal-ink" bindtap="onTapEdit">
+          <view class="seal-content">名</view>
+        </view>
+        <text class="seal-label">称谓</text>
+      </view>
+
+      <view class="seal-group">
+        <view class="seal-item seal-ink" bindtap="onTapEdit">
+          <view class="seal-content">容</view>
+        </view>
+        <text class="seal-label">貌样</text>
+      </view>
+
+      <view class="seal-group">
+        <view class="seal-item seal-ink" bindtap="onTapEdit">
+          <view class="seal-content">意</view>
+        </view>
+        <text class="seal-label">心境</text>
+      </view>
+    </view>
+
+    <!-- 定位印章 - 朱砂红 (保留原功能但美化) -->
+    <view class="seal-group" style="margin-top: 60rpx;">
+      <view class="seal-item seal-vermilion" bindtap="onTapLocation">
+        <view class="seal-content">位</view>
+      </view>
+      <text class="seal-label">踪迹</text>
+    </view>
+  </view>
+
+  <view class="atmospheric-preview">
+    <view class="mood-quote" wx:if="{{userInfo.mood}}">
+      <text class="quote-mark">“</text>
+      <text class="mood-text">{{userInfo.mood}}</text>
+    </view>
+    <view class="status-desc">当前以「{{userInfo.nickname || '旅人'}}」之名，在万象中书写。</view>
+    <view class="partner-mood" wx:if="{{relationship && partnerInfo.mood}}">
+      对方今日心境：{{partnerInfo.mood}}
+    </view>
+  </view>
+
+  <view class="footer">
+    <text>由“两只”情感同步系统 诚制</text>
+  </view>
+</view>

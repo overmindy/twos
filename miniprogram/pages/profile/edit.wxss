@@ -1,0 +1,98 @@
+/* miniprogram/pages/profile/edit.wxss */
+.container {
+  padding: 40rpx;
+  background-color: #FDFCF8;
+}
+
+.edit-card {
+  background-color: #fff;
+  border: 1rpx solid #E0D8C0;
+  box-shadow: 2rpx 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  padding: 40rpx;
+  border-radius: 8rpx;
+  position: relative;
+}
+
+.edit-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.edit-divider {
+  height: 2rpx;
+  background-color: #B22222;
+  width: 100rpx;
+  margin: 0 auto 40rpx;
+}
+
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.avatar-wrapper {
+  background: none;
+  border: 4rpx solid #B22222;
+  width: 160rpx;
+  height: 160rpx;
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+}
+
+.avatar {
+  width: 140rpx;
+  height: 140rpx;
+}
+
+.tip {
+  font-size: 22rpx;
+  color: #8C8C8C;
+  text-align: center;
+  margin-top: 10rpx;
+}
+
+.nickname-input {
+  border-bottom: 1rpx solid #B22222;
+  padding: 10rpx 0;
+  font-size: 32rpx;
+}
+
+.mood-input {
+  width: 100%;
+  height: 120rpx;
+  border: 1rpx solid #E0D8C0;
+  padding: 20rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  background-color: #FDFCF8;
+}
+
+.btn-area {
+  margin-top: 60rpx;
+}
+
+.save-btn {
+  background-color: #B22222;
+  color: #fff;
+  border-radius: 0;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 100rpx;
+  font-size: 20rpx;
+  color: #8C8C8C;
+}

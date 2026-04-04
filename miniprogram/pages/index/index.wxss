@@ -1,0 +1,523 @@
+/**index.wxss**/
+.container {
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 羁绊之树 Canvas 背景 */
+.tree-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 墨色晕染 Canvas */
+.ink-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 气象站 UI (Weather Station) */
+.weather-station {
+  position: absolute;
+  top: 60rpx;
+  left: 40rpx;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4rpx);
+  padding: 16rpx 24rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(224, 216, 192, 0.3);
+}
+
+.station-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.station-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+.preview-icon-img, .chat-icon-img, .games-icon-img {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 8rpx;
+}
+
+.mood-item-icon-img {
+  width: 64rpx;
+  height: 64rpx;
+  margin-bottom: 12rpx;
+}
+
+.preview-entry, .peace-room-entry, .games-entry {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 20rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  color: #2F2F2F;
+  border: 1rpx solid rgba(224, 216, 192, 0.3);
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.preview-entry:active, .peace-room-entry:active, .games-entry:active {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(0.98);
+}
+
+.preview-text, .chat-text, .games-text {
+  font-size: 22rpx;
+  color: #5C5C5C;
+  font-weight: 500;
+}
+
+.station-icon {
+  font-size: 28rpx;
+}
+
+.station-text {
+  font-size: 22rpx;
+  color: #5C5C5C;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+}
+
+/* 纸张叠放区 */
+.paper-stack {
+  position: relative;
+  width: 85%;
+  margin-top: 15vh;
+  perspective: 1000px;
+  z-index: 10;
+}
+
+/* 侧边辅助入口 (小印章效果) */
+.side-controls {
+  position: absolute;
+  right: -80rpx;
+  top: 40rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+  z-index: 50;
+}
+
+.side-seal {
+  width: 100rpx;
+  height: 100rpx;
+  background: #FFF;
+  border: 4rpx solid #B22222;
+  border-radius: 4rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4rpx 4rpx 0 rgba(178, 34, 34, 0.1);
+  transform: rotate(5deg);
+  transition: all 0.2s;
+}
+
+.side-seal:active {
+  transform: rotate(0deg) scale(0.95);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.side-seal-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-bottom: 4rpx;
+}
+
+.side-seal-text {
+  font-size: 18rpx;
+  color: #B22222;
+  font-weight: bold;
+}
+
+.paper {
+  background-color: #FFFFFF;
+  padding: 60rpx;
+  border: 1rpx solid rgba(224, 216, 192, 0.5);
+  min-height: 400rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.paper.folded {
+  transform: rotateX(15deg);
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+}
+
+.paper.unfolding {
+  transform: rotateX(0deg) scale(1.05);
+  box-shadow: 0 20rpx 40rpx rgba(0,0,0,0.05);
+}
+
+.paper-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* 日期印章 */
+.date-seal {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+  border: 4rpx solid #B22222;
+  color: #B22222;
+  padding: 4rpx 12rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+  transform: rotate(5deg);
+  opacity: 0.8;
+}
+
+/* 标题 */
+.memo-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 40rpx;
+  font-weight: 500;
+  color: #2F2F2F;
+  margin-bottom: 20rpx;
+  letter-spacing: 2rpx;
+}
+
+.question-preview {
+  font-size: 28rpx;
+  color: #5C5C5C;
+  margin-bottom: 40rpx;
+  max-width: 80%;
+}
+
+.unfolded-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.question-full {
+  font-size: 32rpx;
+  color: #B22222;
+  margin-bottom: 60rpx;
+  font-style: italic;
+}
+
+.comparison-view {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  position: relative;
+}
+
+.answer-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20rpx;
+  overflow: hidden;
+}
+
+.answer-content-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+/* 极简多模态显示 */
+.polaroid-mini {
+  width: 180rpx;
+  background: #FFFFFF;
+  padding: 10rpx 10rpx 40rpx 10rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
+  border: 1rpx solid #E0D8C0;
+  transform: rotate(-2deg);
+  margin-bottom: 10rpx;
+}
+
+.polaroid-img-mini {
+  width: 100%;
+  height: 160rpx;
+  background: #F9F9F9;
+  display: block;
+}
+
+.voice-seal-mini {
+  width: 100rpx;
+  height: 100rpx;
+  border: 3rpx solid #B22222;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: rgba(178, 34, 34, 0.05);
+  margin-bottom: 10rpx;
+}
+
+.voice-seal-inner-mini {
+  width: 80rpx;
+  height: 80rpx;
+  border: 1rpx solid #B22222;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.6;
+}
+
+.mic-icon-mini {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.answer-text {
+  font-family: "Noto Serif SC", serif;
+  font-size: 28rpx;
+  color: #2F2F2F;
+  line-height: 1.6;
+  text-align: left;
+  width: 100%;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #8C8C8C;
+  font-style: italic;
+}
+
+.divider-line {
+  width: 2rpx;
+  background: #E0D8C0;
+  height: 200rpx;
+  opacity: 0.5;
+}
+
+/* 状态提示 */
+.status-hint {
+  font-size: 28rpx;
+  color: #888888;
+  font-style: italic;
+}
+
+.answer-text.partner-private {
+  filter: blur(12rpx);
+  opacity: 0.6;
+  user-select: none;
+  pointer-events: none;
+}
+
+.answer-text.my-private {
+  color: #B22222;
+  opacity: 0.8;
+}
+
+.private-hint {
+  font-style: italic;
+  font-size: 24rpx;
+  color: #8C8C8C;
+}
+
+/* 底部共振印章 */
+.resonance-btn {
+  position: fixed;
+  bottom: 80rpx;
+  right: 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.seal-icon {
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #B22222;
+  color: #FFFFFF;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  font-weight: bold;
+  box-shadow: 2rpx 2rpx 0 rgba(0,0,0,0.1);
+  margin-bottom: 10rpx;
+  transition: transform 0.2s active;
+}
+
+.resonance-btn:active .seal-icon {
+  transform: scale(0.95);
+}
+
+.seal-text {
+  font-size: 24rpx;
+  color: #B22222;
+  font-weight: bold;
+  letter-spacing: 4rpx;
+}
+
+/* 能量标签与生长预览 (Energy & Preview) */
+.energy-label-container {
+  position: fixed;
+  bottom: 80rpx;
+  left: 60rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  z-index: 20;
+}
+
+.energy-tag {
+  background: rgba(255, 255, 255, 0.7);
+  border: 2rpx solid #2C2C2C;
+  padding: 8rpx 20rpx;
+  border-radius: 4rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  transform: rotate(-2deg);
+  box-shadow: 4rpx 4rpx 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* 手写感：稍微不规则的边框 */
+.energy-tag::after {
+  content: '';
+  position: absolute;
+  top: -2rpx;
+  left: -2rpx;
+  right: -2rpx;
+  bottom: -2rpx;
+  border: 1rpx solid #2C2C2C;
+  border-radius: 8rpx 4rpx 12rpx 6rpx;
+  pointer-events: none;
+}
+
+.energy-icon {
+  font-size: 24rpx;
+}
+
+.energy-value {
+  font-family: "Noto Serif SC", serif;
+  font-size: 24rpx;
+  color: #2C2C2C;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+}
+
+/* 心情选择弹窗 (Mood Modal) */
+.mood-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4rpx);
+}
+
+.mood-modal-content {
+  width: 80%;
+  background: #FFFFFF;
+  padding: 40rpx;
+  border-radius: 4rpx;
+  box-shadow: 10rpx 10rpx 0 rgba(0, 0, 0, 0.05);
+  border: 1rpx solid #E0D8C0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.mood-modal-header {
+  margin-bottom: 40rpx;
+  text-align: center;
+}
+
+.mood-modal-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 36rpx;
+  color: #2F2F2F;
+  letter-spacing: 4rpx;
+}
+
+.mood-modal-divider {
+  width: 60rpx;
+  height: 4rpx;
+  background: #B22222;
+  margin: 12rpx auto 0;
+}
+
+.mood-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30rpx;
+}
+
+.mood-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30rpx 20rpx;
+  border: 1rpx solid #F0EAD6;
+  border-radius: 8rpx;
+  transition: all 0.2s;
+}
+
+.mood-item:active {
+  background: #FAF9F6;
+  transform: scale(0.98);
+  border-color: #E0D8C0;
+}
+
+.mood-item-icon {
+  font-size: 50rpx;
+  margin-bottom: 12rpx;
+}
+
+.mood-item-label {
+  font-size: 24rpx;
+  color: #5C5C5C;
+  font-weight: 500;
+}

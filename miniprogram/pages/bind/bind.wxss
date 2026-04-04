@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  width: 80%;
+  background: #fff;
+  padding: 80rpx 40rpx;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.05);
+  border: 1rpx solid #E0D8C0;
+  text-align: center;
+  position: relative;
+  background-image: radial-gradient(#E0D8C0 0.5px, transparent 0.5px);
+  background-size: 20px 20px;
+}
+
+.seal {
+  position: absolute;
+  top: 40rpx;
+  right: 40rpx;
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #B22222;
+  color: #B22222;
+  font-size: 32rpx;
+  line-height: 60rpx;
+  font-family: serif;
+  opacity: 0.8;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 60rpx;
+  font-family: "Noto Serif SC", serif;
+}
+
+.content {
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 80rpx;
+}
+
+.btn-bind {
+  background: #B22222;
+  color: #fff;
+  border-radius: 0;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+  box-shadow: 0 4rpx 12rpx rgba(178,34,34,0.3);
+}
+
+.hint {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #999;
+}

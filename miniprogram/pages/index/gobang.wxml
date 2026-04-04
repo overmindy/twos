@@ -1,0 +1,57 @@
+<view class="container">
+  <view class="header">
+    <view class="player-info {{currentTurn === 'black' ? 'active' : ''}}">
+      <view class="stone black"></view>
+      <text>{{blackNickname || '黑方'}}</text>
+    </view>
+    <view class="vs">对弈</view>
+    <view class="player-info {{currentTurn === 'white' ? 'active' : ''}}">
+      <view class="stone white"></view>
+      <text>{{whiteNickname || '白方'}}</text>
+    </view>
+  </view>
+
+  <view class="board-wrapper">
+    <view class="board">
+      <!-- 棋盘线条 -->
+      <view class="grid-lines">
+        <view wx:for="{{15}}" wx:key="index" class="line row" style="top: {{index * 40 + 20}}rpx;"></view>
+        <view wx:for="{{15}}" wx:key="index" class="line col" style="left: {{index * 40 + 20}}rpx;"></view>
+      </view>
+
+      <!-- 棋盘交互点 (15x15) -->
+      <view class="interaction-layer">
+        <view 
+          wx:for="{{15}}" 
+          wx:for-index="rowIndex" 
+          wx:key="rowIndex" 
+          class="board-row"
+        >
+          <view 
+            wx:for="{{15}}" 
+            wx:for-index="colIndex" 
+            wx:key="colIndex" 
+            class="intersection"
+            bindtap="onTapIntersection"
+            data-x="{{rowIndex}}"
+            data-y="{{colIndex}}"
+          >
+            <view wx:if="{{board[rowIndex][colIndex]}}" class="stone {{board[rowIndex][colIndex]}} {{lastMove.x === rowIndex && lastMove.y === colIndex ? 'newly-placed' : ''}}"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer">
+    <view wx:if="{{gameStatus === 'won'}}" class="result-msg">
+      <text class="winner-text">{{winner === 'black' ? (blackNickname || '黑方') : (whiteNickname || '白方')}} 胜出</text>
+      <button class="btn-restart" bindtap="restartGame">再弈一局</button>
+    </view>
+    <view wx:else class="turn-msg">
+      <text>{{currentTurn === myColor ? '轮到你了' : '对方思考中...'}}</text>
+    </view>
+  </view>
+
+  <view class="back-link" bindtap="goBack">返回博弈大厅</view>
+</view>

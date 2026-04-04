@@ -1,0 +1,39 @@
+<view class="container peace-room">
+  <view class="header serif-text ink-black">语气实验室 · 止戈室</view>
+  
+  <scroll-view 
+    class="chat-history" 
+    scroll-y 
+    scroll-into-view="{{lastMessageId}}"
+    scroll-with-animation
+  >
+    <view 
+      wx:for="{{chatList}}" 
+      wx:key="id" 
+      id="msg-{{item.id}}"
+      class="message-item {{item.role === 'me' ? 'me' : 'ta'}}"
+    >
+      <view class="bubble {{item.role === 'me' ? 'vermilion-ink' : 'black-ink'}}">
+        <text class="content serif-text">{{item.content}}</text>
+        <view class="timestamp">{{item.time}}</view>
+      </view>
+    </view>
+    <view id="bottom-view"></view>
+  </scroll-view>
+
+  <view class="input-area">
+    <textarea 
+      class="chat-input serif-text" 
+      placeholder="于此案前，暂且收刀入鞘..." 
+      value="{{inputValue}}"
+      bindinput="onInputChange"
+      auto-height
+      fixed
+      show-confirm-bar="{{false}}"
+    />
+    <button class="send-btn serif-text" bindtap="onSendClick">止戈</button>
+  </view>
+
+  <!-- 全局纸张纹理覆盖 -->
+  <view class="paper-texture"></view>
+</view>

@@ -1,0 +1,58 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/bind/bind",
+    "pages/archive/index",
+    "pages/profile/index",
+    "pages/profile/edit",
+    "pages/index/answer",
+    "pages/index/peace",
+    "pages/index/games",
+    "pages/index/coin-flip",
+    "pages/index/gobang"
+  ],
+  "window": {
+    "backgroundColor": "#FDFCF8",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FDFCF8",
+    "navigationBarTitleText": "两只",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#8C8C8C",
+    "selectedColor": "#B22222",
+    "backgroundColor": "#FDFCF8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "手札",
+        "iconPath": "images/icons/tab-home.png",
+        "selectedIconPath": "images/icons/tab-home.png"
+      },
+      {
+        "pagePath": "pages/archive/index",
+        "text": "时光",
+        "iconPath": "images/icons/tab-archive.png",
+        "selectedIconPath": "images/icons/tab-archive.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我",
+        "iconPath": "images/icons/happy.png",
+        "selectedIconPath": "images/icons/happy.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "我们需要获取您的位置以计算与另一半的距离"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

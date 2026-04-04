@@ -1,0 +1,43 @@
+<view class="container">
+  <!-- 信纸背景 -->
+  <view class="letter-paper">
+    <view class="paper-header">
+      <text class="title">抛硬币 · 决断</text>
+      <text class="subtitle">墨香一掷，凡事随缘</text>
+    </view>
+
+    <view class="coin-container">
+      <view class="coin {{flipping ? 'is-flipping' : ''}} {{result === 'tail' ? 'show-tail' : 'show-head'}}" style="--flip-count: {{flipCount}};">
+        <!-- 硬币正面 (Head) - 墨色白描 -->
+        <view class="coin-side head">
+          <view class="coin-inner">
+            <text class="coin-text">字</text>
+            <view class="ink-ring"></view>
+          </view>
+        </view>
+        <!-- 硬币背面 (Tail) - 墨色白描 -->
+        <view class="coin-side tail">
+          <view class="coin-inner">
+            <text class="coin-text">花</text>
+            <view class="ink-ring"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="result-box {{showResult ? 'visible' : ''}}">
+      <text class="result-text">{{result === 'head' ? '「 字 · 顺从本心 」' : '「 花 · 另辟蹊径 」'}}</text>
+    </view>
+
+    <view class="action-area">
+      <button class="flip-btn" bindtap="startFlip" disabled="{{flipping}}">
+        <text class="btn-text">掷</text>
+      </button>
+      <text class="hint-text">点击掷出，对方将同步见证</text>
+    </view>
+  </view>
+
+  <view class="footer-seal">
+    <text class="seal-text">手札·默契</text>
+  </view>
+</view>
