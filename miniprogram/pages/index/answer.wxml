@@ -19,6 +19,18 @@
     </view>
   </view>
 
+  <!-- AI 润色加载中 - 墨迹消散动画 -->
+  <view class="rewriting-mask" wx:if="{{isRewriting}}">
+    <view class="ink-loading">
+      <view class="ink-drop-container">
+        <view class="ink-drop"></view>
+        <view class="ink-drop delay-1"></view>
+        <view class="ink-drop delay-2"></view>
+      </view>
+      <view class="ink-text">正在研磨墨迹...</view>
+    </view>
+  </view>
+
   <view class="paper-bg">
     <!-- 方格纹背景装饰 -->
     <view class="grid-layer"></view>

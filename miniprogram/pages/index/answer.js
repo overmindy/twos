@@ -16,7 +16,8 @@ Page({
     openid: '',
     mode: 'linked',
     answerPrivacy: 'public',
-    answerId: ''
+    answerId: '',
+    isRewriting: false
   },
 
   onLoad(options) {
@@ -168,9 +169,7 @@ Page({
     const { content } = this.data;
     if (!content.trim()) return;
 
-    wx.showLoading({
-      title: '正在研磨墨迹...',
-    });
+    this.setData({ isRewriting: true });
 
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
@@ -181,10 +180,10 @@ Page({
         }
       }
     }).then(res => {
-      wx.hideLoading();
+      this.setData({ isRewriting: false });
       if (res && res.result && res.result.success) {
         this.setData({
-          content: res.result.result
+          content: res.result.content
         });
         wx.showToast({
           title: '墨迹已润',
@@ -197,7 +196,7 @@ Page({
         });
       }
     }).catch(err => {
-      wx.hideLoading();
+      this.setData({ isRewriting: false });
       console.error('Rewrite failed', err);
     });
   },

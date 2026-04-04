@@ -451,7 +451,7 @@ const rewriteText = async (event) => {
       messages: [
         {
           role: 'system',
-          content: '你是一个温柔、理性且具有极高情商的语气实验员。你的任务是将用户输入的带有情绪、生硬或容易产生误会的文字，改写为温婉、平和、体面且保留原意的表达。请先在内部思考用户的真实动机，然后给出改写后的文字。'
+          content: '你是一个充满诗意、温柔体贴的文字修辞师。你的任务是将用户在“二人世界”小程序中留下的感悟、絮语或也许略显生硬的话语，润色为更加温馨、文艺、富有文学美感且饱含深情的表达。请保持原意，但让文字如墨落宣纸，余味悠长。直接给出润色后的内容。'
         },
         {
           role: 'user',
@@ -465,10 +465,8 @@ const rewriteText = async (event) => {
       const choice = res.choices[0].message;
       return {
         success: true,
-        result: {
-          reasoning_content: choice.reasoning_content || '',
-          content: choice.content
-        }
+        content: choice.content,
+        reasoning_content: choice.reasoning_content || ''
       };
     } else {
       return { success: false, errMsg: 'AI 未返回任何内容' };

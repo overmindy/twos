@@ -532,3 +532,81 @@
   margin-top: 10rpx;
   letter-spacing: 2rpx;
 }
+
+/* AI 润色加载动画 */
+.rewriting-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(253, 252, 248, 0.9);
+  backdrop-filter: blur(15rpx);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ink-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60rpx;
+}
+
+.ink-drop-container {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+}
+
+.ink-drop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120rpx;
+  height: 120rpx;
+  background: #2F2F2F;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  opacity: 0;
+  animation: ink-dissipate 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ink-drop.delay-1 {
+  animation-delay: 0.6s;
+}
+
+.ink-drop.delay-2 {
+  animation-delay: 1.2s;
+}
+
+@keyframes ink-dissipate {
+  0% {
+    transform: rotate(-45deg) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(-45deg) scale(2);
+    opacity: 0;
+    filter: blur(10rpx);
+  }
+}
+
+.ink-text {
+  font-family: 'Serif', serif;
+  font-size: 32rpx;
+  color: #2F2F2F;
+  letter-spacing: 6rpx;
+  font-style: italic;
+  animation: ink-text-fade 2s infinite ease-in-out;
+}
+
+@keyframes ink-text-fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
