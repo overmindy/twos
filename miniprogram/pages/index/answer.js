@@ -17,7 +17,8 @@ Page({
     mode: 'linked',
     answerPrivacy: 'public',
     answerId: '',
-    isRewriting: false
+    isRewriting: false,
+    isLoading: false
   },
 
   onLoad(options) {
@@ -165,40 +166,72 @@ Page({
     });
   },
 
-  onRewrite() {
+  async onRewrite() {
     const { content } = this.data;
     if (!content.trim()) return;
 
-    this.setData({ isRewriting: true });
+    this.setData({ 
+      isLoading: true,
+      isRewriting: true 
+    });
 
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: {
-        type: 'rewriteText',
+    try {
+      const res = await wx.cloud.extend.AI.createModel('deepseek').streamText({
         data: {
-          text: content
+          model: 'deepseek-v3',
+          messages: [
+            {
+              role: 'system',
+              content: '你是一个充满诗意、温柔体贴的文字修辞师。你的任务是将用户在“二人世界”小程序中留下的感悟、絮语或也许略显生硬的话语，润色为更加温馨、文艺、富有文学美感且饱含深情的表达。请保持原意，但让文字如墨落宣纸，余味悠长。直接给出润色后的内容。'
+            },
+            {
+              role: 'user',
+              content: content
+            }
+          ]
+        }
+      });
+
+      let newContent = '';
+      for await (const event of res) {
+        if (event.data === '[DONE]') {
+          this.setData({ 
+            isLoading: false,
+            isRewriting: false 
+          });
+          wx.showToast({
+            title: '墨迹已润',
+            icon: 'none'
+          });
+          break;
+        }
+
+        try {
+          const data = JSON.parse(event.data);
+          const text = data.choices[0].delta?.content || '';
+          if (text) {
+            // Once we have text, hide the mask to show the rendering process
+            if (this.data.isRewriting) {
+              this.setData({ isRewriting: false });
+            }
+            newContent += text;
+            this.setData({ content: newContent });
+          }
+        } catch (e) {
+          console.error('Parse error', e);
         }
       }
-    }).then(res => {
-      this.setData({ isRewriting: false });
-      if (res && res.result && res.result.success) {
-        this.setData({
-          content: res.result.content
-        });
-        wx.showToast({
-          title: '墨迹已润',
-          icon: 'none'
-        });
-      } else {
-        wx.showToast({
-          title: '实验室暂休',
-          icon: 'none'
-        });
-      }
-    }).catch(err => {
-      this.setData({ isRewriting: false });
+    } catch (err) {
+      this.setData({ 
+        isLoading: false, 
+        isRewriting: false 
+      });
       console.error('Rewrite failed', err);
-    });
+      wx.showToast({
+        title: '实验室暂休',
+        icon: 'none'
+      });
+    }
   },
 
   async uploadFile(localPath, prefix) {
