@@ -15,7 +15,9 @@ Page({
     chatList: [],
     inputValue: '',
     lastMessageId: 'bottom-view',
-    isLoading: false
+    isLoading: false,
+    processingMessage: null,
+    showDetailMap: {}
   },
 
   onLoad(options) {
@@ -53,6 +55,7 @@ Page({
             id: doc._id,
             role: doc.senderOpenid === this.data.openid ? 'me' : 'ta',
             content: doc.text,
+            reasoning: doc.reasoning || '',
             time: formatSimpleTime(new Date(doc.createTime))
           }));
 
@@ -87,12 +90,41 @@ Page({
     });
   },
 
+  onMessageTap(e) {
+    const { id } = e.currentTarget.dataset;
+    const { showDetailMap } = this.data;
+    showDetailMap[id] = !showDetailMap[id];
+    this.setData({ showDetailMap });
+  },
+
+  async typeEffect(field, text) {
+    if (!text) return;
+    for (let i = 0; i <= text.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 30));
+      this.setData({
+        [`processingMessage.${field}`]: text.substring(0, i)
+      });
+      if (i % 5 === 0) this.scrollToBottom();
+    }
+    this.scrollToBottom();
+  },
+
   async onSendClick() {
     const { inputValue, isLoading, relationshipId } = this.data;
     if (!inputValue.trim() || isLoading || !relationshipId) return;
 
-    this.setData({ isLoading: true });
-    wx.showLoading({ title: '墨迹未干...' });
+    this.setData({ 
+      isLoading: true,
+      processingMessage: {
+        role: 'me',
+        content: '',
+        reasoning: '',
+        isLoading: true,
+        time: formatSimpleTime(new Date())
+      },
+      inputValue: ''
+    });
+    this.scrollToBottom();
 
     try {
       // 1. 先进行 rewriteText 润色
@@ -106,34 +138,50 @@ Page({
         }
       });
 
-      const finalContent = rewriteRes.result.result || inputValue;
+      if (!rewriteRes.result.success) {
+        throw new Error(rewriteRes.result.errMsg);
+      }
 
-      // 2. 调用 sendMessage 云函数存储
+      const { reasoning_content, content } = rewriteRes.result.result;
+
+      this.setData({ 'processingMessage.isLoading': false });
+
+      // 展示打字机效果：先思考
+      if (reasoning_content) {
+        await this.typeEffect('reasoning', reasoning_content);
+        await new Promise(resolve => setTimeout(resolve, 500)); // 稍作停顿
+      }
+
+      // 再展示润色后的正文
+      await this.typeEffect('content', content || inputValue);
+
+      // 2. 调用 sendMessage 云函数存储 (保存正文和思考过程)
       await wx.cloud.callFunction({
         name: 'quickstartFunctions',
         data: {
           type: 'sendMessage',
           data: {
             relationshipId,
-            text: finalContent
+            text: content || inputValue,
+            reasoning: reasoning_content || ''
           }
         }
       });
 
       this.setData({
-        inputValue: '',
+        processingMessage: null,
         isLoading: false
       });
-
-      wx.hideLoading();
     } catch (e) {
       console.error(e);
-      wx.hideLoading();
       wx.showToast({
         title: '信鸽迷路了',
         icon: 'none'
       });
-      this.setData({ isLoading: false });
+      this.setData({ 
+        isLoading: false,
+        processingMessage: null
+      });
     }
   },
 
@@ -171,8 +219,12 @@ Page({
   },
 
   scrollToBottom() {
-    const { chatList } = this.data;
-    if (chatList.length > 0) {
+    const { chatList, processingMessage } = this.data;
+    if (processingMessage) {
+      this.setData({
+        lastMessageId: 'msg-processing'
+      });
+    } else if (chatList.length > 0) {
       const lastId = chatList[chatList.length - 1].id;
       this.setData({
         lastMessageId: `msg-${lastId}`

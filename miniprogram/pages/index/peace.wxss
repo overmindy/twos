@@ -101,6 +101,63 @@
   text-align: right;
 }
 
+/* AI 思考过程样式：轻量化、斜体、浅灰色 */
+.reasoning-text {
+  font-size: 24rpx;
+  color: #888888;
+  font-style: italic;
+  font-weight: 300;
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx dashed rgba(0,0,0,0.05);
+  animation: fadeIn 0.8s ease;
+  line-height: 1.4;
+}
+
+.reasoning-content {
+  opacity: 0.85;
+}
+
+/* 呼吸动效 */
+.loading-status {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+}
+
+.loading-breathing {
+  font-size: 20rpx;
+  color: #B22222;
+  opacity: 0.6;
+  animation: breathing 2s infinite ease-in-out;
+}
+
+@keyframes breathing {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.2; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 消息气泡渐入效果 */
+.message-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 详情展开时的背景微调 */
+.bubble.show-detail {
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
+}
+
 .input-area {
   padding: 20rpx 30rpx calc(20rpx + env(safe-area-inset-bottom));
   background-color: #FDFCF8;

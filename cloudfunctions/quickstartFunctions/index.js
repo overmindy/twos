@@ -1218,7 +1218,7 @@ const placeCoinBet = async (event) => {
 // 聊天室：发送消息
 const sendMessage = async (event) => {
   const data = event.data || {};
-  const { relationshipId, text } = data;
+  const { relationshipId, text, reasoning } = data;
   const { OPENID } = cloud.getWXContext();
 
   if (!relationshipId || !text || !OPENID) {
@@ -1231,6 +1231,7 @@ const sendMessage = async (event) => {
         relationshipId,
         senderOpenid: OPENID,
         text,
+        reasoning: reasoning || '',
         type: 'text',
         createTime: db.serverDate()
       }

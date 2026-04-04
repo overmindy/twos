@@ -16,11 +16,33 @@
       id="msg-{{item.id}}"
       class="message-item {{item.role === 'me' ? 'me' : 'ta'}}"
     >
-      <view class="bubble {{item.role === 'me' ? 'vermilion-ink' : 'black-ink'}}">
+      <view 
+        class="bubble {{item.role === 'me' ? 'vermilion-ink' : 'black-ink'}} {{showDetailMap[item.id] ? 'show-detail' : ''}}"
+        bindtap="onMessageTap"
+        data-id="{{item.id}}"
+      >
+        <view class="reasoning-text" wx:if="{{item.reasoning && showDetailMap[item.id]}}">
+          <text class="reasoning-content">{{item.reasoning}}</text>
+        </view>
         <text class="content serif-text">{{item.content}}</text>
         <view class="timestamp">{{item.time}}</view>
       </view>
     </view>
+
+    <!-- 正在处理中的消息占位 -->
+    <view wx:if="{{processingMessage}}" class="message-item me" id="msg-processing">
+      <view class="bubble vermilion-ink show-detail">
+        <view class="reasoning-text" wx:if="{{processingMessage.reasoning}}">
+          <text class="reasoning-content">{{processingMessage.reasoning}}</text>
+        </view>
+        <text class="content serif-text">{{processingMessage.content}}</text>
+        <view wx:if="{{processingMessage.isLoading}}" class="loading-status">
+          <text class="loading-breathing">墨迹渐浓...</text>
+        </view>
+        <view class="timestamp">{{processingMessage.time}}</view>
+      </view>
+    </view>
+
     <view id="bottom-view" style="height: 20rpx;"></view>
   </scroll-view>
 
