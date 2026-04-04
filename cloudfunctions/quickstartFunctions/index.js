@@ -796,41 +796,76 @@ const placeGobangPiece = async (event) => {
   }
 
   try {
-    const { data: game } = await db.collection('gobang_games').doc(gameId).get();
-    if (!game) return { success: false, errMsg: '游戏不存在' };
-    if (game.status !== 'playing') return { success: false, errMsg: '游戏已结束' };
-
-    // 权限与回合检查
-    const isBlack = game.blackPlayer === OPENID;
-    const isWhite = game.whitePlayer === OPENID;
+    // 尝试从两个集合中寻找对局
+    let game;
+    let isRoom = false;
     
-    if (!isBlack && !isWhite) return { success: false, errMsg: '你不是这局游戏的玩家' };
-    if (game.currentTurn === 'black' && !isBlack) return { success: false, errMsg: '还没轮到你' };
-    if (game.currentTurn === 'white' && !isWhite) return { success: false, errMsg: '还没轮到你' };
-
-    if (game.board[x][y]) return { success: false, errMsg: '这里已经有棋子了' };
-
-    const color = game.currentTurn;
-    const newBoard = game.board;
-    newBoard[x][y] = color;
-    
-    const win = checkGobangWin(newBoard, x, y, color);
-    
-    const updateData = {
-      board: newBoard,
-      lastUpdateTime: db.serverDate()
-    };
-    
-    if (win) {
-      updateData.status = 'won';
-      updateData.winner = color;
+    const { data: gGames } = await db.collection('gobang_games').doc(gameId).get().catch(() => ({ data: null }));
+    if (gGames) {
+      game = gGames;
     } else {
-      updateData.currentTurn = color === 'black' ? 'white' : 'black';
+      const { data: gRooms } = await db.collection('game_rooms').doc(gameId).get().catch(() => ({ data: null }));
+      if (gRooms) {
+        game = gRooms;
+        isRoom = true;
+      }
     }
 
-    await db.collection('gobang_games').doc(gameId).update({
-      data: updateData
-    });
+    if (!game) return { success: false, errMsg: '游戏或房间不存在' };
+    
+    const status = isRoom ? game.status : game.status;
+    if (status !== 'playing' && status !== 'PLAYING') return { success: false, errMsg: '游戏已结束或未开始' };
+
+    // 获取棋盘和当前回合
+    let board = isRoom ? game.gameState.data.board : game.board;
+    let currentTurn = isRoom ? game.gameState.currentTurn : game.currentTurn;
+    let playerA = isRoom ? game.players.playerA.openid : game.blackPlayer;
+    let playerB = isRoom ? game.players.playerB.openid : game.whitePlayer;
+
+    // 权限与回合检查
+    if (isRoom) {
+      if (OPENID !== currentTurn) return { success: false, errMsg: '还没轮到你' };
+    } else {
+      const isBlack = game.blackPlayer === OPENID;
+      const isWhite = game.whitePlayer === OPENID;
+      if (!isBlack && !isWhite) return { success: false, errMsg: '你不是这局游戏的玩家' };
+      if (game.currentTurn === 'black' && !isBlack) return { success: false, errMsg: '还没轮到你' };
+      if (game.currentTurn === 'white' && !isWhite) return { success: false, errMsg: '还没轮到你' };
+    }
+
+    if (board[x][y]) return { success: false, errMsg: '这里已经有棋子了' };
+
+    // 落子
+    const color = isRoom ? (OPENID === playerA ? 'black' : 'white') : currentTurn;
+    board[x][y] = color;
+    
+    const win = checkGobangWin(board, x, y, color);
+    
+    if (isRoom) {
+      const updateData = {
+        'gameState.data.board': board,
+        updateTime: db.serverDate()
+      };
+      if (win) {
+        updateData.status = 'FINISHED';
+        updateData['gameState.winner'] = OPENID;
+      } else {
+        updateData['gameState.currentTurn'] = OPENID === playerA ? playerB : playerA;
+      }
+      await db.collection('game_rooms').doc(gameId).update({ data: updateData });
+    } else {
+      const updateData = {
+        board: board,
+        lastUpdateTime: db.serverDate()
+      };
+      if (win) {
+        updateData.status = 'won';
+        updateData.winner = color;
+      } else {
+        updateData.currentTurn = color === 'black' ? 'white' : 'black';
+      }
+      await db.collection('gobang_games').doc(gameId).update({ data: updateData });
+    }
 
     return { success: true, win, winner: win ? color : null };
   } catch (e) {

@@ -54,4 +54,41 @@
   </view>
 
   <view class="back-link" bindtap="goBack">返回博弈大厅</view>
+
+  <!-- 准备蒙层 UI -->
+  <view wx:if="{{room && room.status !== 'PLAYING'}}" class="ready-mask">
+    <view class="ready-content">
+      <view class="ready-title">弈前准备</view>
+      <view class="player-status-list">
+        <view class="player-status-item">
+          <text class="nickname">{{blackNickname}}</text>
+          <text class="status-tag {{room.players.playerA.ready ? 'ready' : ''}}">
+            {{room.players.playerA.ready ? '已就绪' : '思索中...'}}
+          </text>
+        </view>
+        <view class="player-status-item">
+          <text class="nickname">{{whiteNickname}}</text>
+          <text class="status-tag {{room.players.playerB.ready ? 'ready' : ''}}">
+            {{room.players.playerB.ready ? '已就绪' : '思索中...'}}
+          </text>
+        </view>
+      </view>
+      
+      <button 
+        wx:if="{{!isMyReady}}" 
+        class="btn-ready" 
+        bindtap="handleReady"
+      >
+        准备就绪
+      </button>
+      <view wx:else class="waiting-msg">等待对方入局...</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!room}}" class="ready-mask">
+    <view class="ready-content">
+      <view class="ready-title">开启对局</view>
+      <button class="btn-ready" bindtap="handleReady">准备</button>
+    </view>
+  </view>
 </view>

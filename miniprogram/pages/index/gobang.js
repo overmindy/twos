@@ -4,6 +4,8 @@ Page({
   data: {
     gameId: '',
     relationshipId: '',
+    roomId: '',
+    room: null,
     board: Array(15).fill(null).map(() => Array(15).fill(null)),
     currentTurn: 'black',
     myColor: '',
@@ -12,7 +14,8 @@ Page({
     gameStatus: 'playing',
     winner: null,
     watcher: null,
-    lastMove: { x: -1, y: -1 }
+    lastMove: { x: -1, y: -1 },
+    isMyReady: false
   },
 
   // 非数据绑定变量存放在这里以减少 setData 负担
@@ -49,7 +52,10 @@ Page({
       }
 
       this.setData({ relationshipId });
-      this.initGame();
+      
+      // 3. 检查是否有活跃房间 (恢复功能)
+      await this.checkActiveRoom();
+      
     } catch (e) {
       console.error(e);
       wx.showToast({ title: '系统初始化失败', icon: 'none' });
@@ -57,6 +63,128 @@ Page({
     } finally {
       wx.hideLoading();
     }
+  },
+
+  async checkActiveRoom() {
+    const _ = db.command;
+    try {
+      const { data: rooms } = await db.collection('game_rooms').where({
+        relationshipId: this.data.relationshipId,
+        gameType: 'gobang',
+        status: _.in(['WAITING', 'PREPARING', 'PLAYING'])
+      }).get();
+
+      if (rooms.length > 0) {
+        const room = rooms[0];
+        this.setData({ roomId: room._id });
+        this.watchRoom(room._id);
+      }
+    } catch (e) {
+      console.error('Failed to check active room', e);
+    }
+  },
+
+  async handleReady() {
+    wx.showLoading({ title: '准备中...' });
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: {
+          type: 'handleGameReady',
+          data: {
+            relationshipId: this.data.relationshipId,
+            gameType: 'gobang'
+          }
+        }
+      });
+
+      if (result.success) {
+        this.setData({ roomId: result.room._id });
+        if (!this.data.watcher) {
+          this.watchRoom(result.room._id);
+        }
+      } else {
+        wx.showToast({ title: result.errMsg, icon: 'none' });
+      }
+    } catch (e) {
+      console.error(e);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  watchRoom(roomId) {
+    if (this.data.watcher) {
+      this.data.watcher.close();
+    }
+
+    const watcher = db.collection('game_rooms').doc(roomId).watch({
+      onChange: (snapshot) => {
+        if (snapshot.docs.length > 0) {
+          this.updateRoomState(snapshot.docs[0]);
+        }
+      },
+      onError: (err) => {
+        console.error('the watch closed because of error', err);
+      }
+    });
+    this.setData({ watcher });
+  },
+
+  updateRoomState(room) {
+    const rel = this.relationship;
+    const isPlayerA = room.players.playerA.openid === this.myOpenid;
+    const isMyReady = isPlayerA ? room.players.playerA.ready : room.players.playerB.ready;
+
+    // 默认 A 是黑棋，B 是白棋
+    const myColor = isPlayerA ? 'black' : 'white';
+    const blackNickname = rel.userAInfo?.nickname || '黑方';
+    const whiteNickname = rel.userBInfo?.nickname || '白方';
+
+    const newState = {
+      room,
+      isMyReady,
+      myColor,
+      blackNickname,
+      whiteNickname,
+      gameStatus: room.status.toLowerCase()
+    };
+
+    if (room.status === 'PLAYING' && room.gameState.data.board) {
+      const oldBoard = this.data.board;
+      const newBoard = room.gameState.data.board;
+      let newX = -1, newY = -1;
+
+      // 寻找新落子
+      for (let i = 0; i < 15; i++) {
+        for (let j = 0; j < 15; j++) {
+          if (newBoard[i][j] && !oldBoard[i][j]) {
+            newX = i;
+            newY = j;
+            break;
+          }
+        }
+        if (newX !== -1) break;
+      }
+
+      if (newX !== -1) {
+        this.playStoneSound();
+      }
+
+      newState.board = newBoard;
+      // 转换 currentTurn (openid -> black/white)
+      newState.currentTurn = room.gameState.currentTurn === room.players.playerA.openid ? 'black' : 'white';
+      newState.winner = room.gameState.winner ? (room.gameState.winner === room.players.playerA.openid ? 'black' : 'white') : null;
+      if (newX !== -1) {
+        newState.lastMove = { x: newX, y: newY };
+      }
+    } else if (room.status === 'FINISHED') {
+      newState.winner = room.gameState.winner ? (room.gameState.winner === room.players.playerA.openid ? 'black' : 'white') : null;
+      newState.gameStatus = 'won';
+    }
+
+    this.setData(newState);
   },
 
   onUnload() {
@@ -83,104 +211,14 @@ Page({
   },
 
   async initGame() {
-    wx.showLoading({ title: '对局初始化...' });
-    try {
-      // 调用云函数初始化或获取现有对局
-      const { result } = await wx.cloud.callFunction({
-        name: 'quickstartFunctions',
-        data: {
-          type: 'initGobang',
-          data: { relationshipId: this.data.relationshipId }
-        }
-      });
-
-      if (result.success) {
-        this.setData({ gameId: result.gameId });
-        // 如果已经有监听器，先关闭
-        if (this.data.watcher) {
-          this.data.watcher.close();
-        }
-        this.watchGame();
-      } else {
-        wx.showToast({ title: result.errMsg, icon: 'none' });
-      }
-    } catch (e) {
-      console.error(e);
-      wx.showToast({ title: '初始化失败', icon: 'none' });
-    } finally {
-      wx.hideLoading();
-    }
+    // 该方法由于 room 系统的引入，基本可以废弃，或者重定向到 handleReady
+    this.handleReady();
   },
 
-  watchGame() {
-    const watcher = db.collection('gobang_games').doc(this.data.gameId).watch({
-      onChange: (snapshot) => {
-        if (snapshot.docs.length > 0) {
-          const game = snapshot.docs[0];
-          this.updateGameState(game);
-        }
-      },
-      onError: (err) => {
-        console.error('the watch closed because of error', err);
-      }
-    });
-    this.setData({ watcher });
-  },
-
-  updateGameState(game) {
-    const myColor = game.blackPlayer === this.myOpenid ? 'black' : 'white';
-
-    let blackNickname = '黑方';
-    let whiteNickname = '白方';
-
-    if (this.relationship) {
-      const rel = this.relationship;
-      if (game.blackPlayer === rel.userA) {
-        blackNickname = rel.userAInfo?.nickname || '用户A';
-        whiteNickname = rel.userBInfo?.nickname || '用户B';
-      } else {
-        blackNickname = rel.userBInfo?.nickname || '用户B';
-        whiteNickname = rel.userAInfo?.nickname || '用户A';
-      }
-    }
-
-    const oldBoard = this.data.board;
-    const newBoard = game.board;
-    let newX = -1, newY = -1;
-
-    // 寻找最新的落子点 (仅当不是初始化加载时播放声音)
-    if (this.data.gameId) {
-      for (let i = 0; i < 15; i++) {
-        for (let j = 0; j < 15; j++) {
-          if (newBoard[i][j] && !oldBoard[i][j]) {
-            newX = i;
-            newY = j;
-            break;
-          }
-        }
-        if (newX !== -1) break;
-      }
-
-      if (newX !== -1) {
-        this.playStoneSound();
-      }
-    }
-
-    this.setData({
-      board: game.board,
-      currentTurn: game.currentTurn,
-      gameStatus: game.status,
-      winner: game.winner,
-      myColor,
-      blackNickname,
-      whiteNickname,
-      lastMove: newX !== -1 ? { x: newX, y: newY } : this.data.lastMove
-    });
-  },
-
+  // 这里的 onTapIntersection 也需要更新 gameId 为 roomId
   async onTapIntersection(e) {
     const { x, y } = e.currentTarget.dataset;
-    const { board, currentTurn, myColor, gameStatus } = this.data;
+    const { board, currentTurn, myColor, gameStatus, roomId } = this.data;
 
     if (gameStatus !== 'playing') return;
     if (currentTurn !== myColor) {
@@ -189,7 +227,7 @@ Page({
     }
     if (board[x][y]) return;
 
-    // 预渲染（提升响应感）
+    // 预渲染
     const newBoard = JSON.parse(JSON.stringify(board));
     newBoard[x][y] = myColor;
     this.setData({ 
@@ -204,7 +242,7 @@ Page({
         data: {
           type: 'placeGobangPiece',
           data: {
-            gameId: this.data.gameId,
+            gameId: roomId, // 使用 roomId
             x,
             y
           }
@@ -216,7 +254,7 @@ Page({
         // 失败回滚
         this.setData({ 
           board,
-          lastMove: { x: -1, y: -1 } // 简单处理回滚
+          lastMove: { x: -1, y: -1 } 
         });
       }
     } catch (e) {
