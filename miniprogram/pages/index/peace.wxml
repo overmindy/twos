@@ -21,25 +21,14 @@
         bindtap="onMessageTap"
         data-id="{{item.id}}"
       >
-        <view class="reasoning-text" wx:if="{{item.reasoning && showDetailMap[item.id]}}">
-          <text class="reasoning-content">{{item.reasoning}}</text>
+        <view class="reasoning-text" wx:if="{{(item.thinking || item.reasoning) && showDetailMap[item.id]}}">
+          <text class="reasoning-content">{{item.thinking || item.reasoning}}</text>
         </view>
         <text class="content serif-text">{{item.content}}</text>
-        <view class="timestamp">{{item.time}}</view>
-      </view>
-    </view>
-
-    <!-- 正在处理中的消息占位 -->
-    <view wx:if="{{processingMessage}}" class="message-item me" id="msg-processing">
-      <view class="bubble vermilion-ink show-detail">
-        <view class="reasoning-text" wx:if="{{processingMessage.reasoning}}">
-          <text class="reasoning-content">{{processingMessage.reasoning}}</text>
-        </view>
-        <text class="content serif-text">{{processingMessage.content}}</text>
-        <view wx:if="{{processingMessage.isLoading}}" class="loading-status">
+        <view wx:if="{{item.isLoading}}" class="loading-status">
           <text class="loading-breathing">墨迹渐浓...</text>
         </view>
-        <view class="timestamp">{{processingMessage.time}}</view>
+        <view class="timestamp">{{item.time}}</view>
       </view>
     </view>
 

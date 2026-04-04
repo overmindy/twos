@@ -1322,6 +1322,8 @@ exports.main = async (event, context) => {
       return await placeCoinBet(event);
     case "sendMessage":
       return await sendMessage(event);
+    case "saveMessage":
+      return await sendMessage(event);
     case "clearChatMessages":
       return await clearChatMessages(event);
     case "refreshDrawGuessWord":

@@ -16,7 +16,6 @@ Page({
     inputValue: '',
     lastMessageId: 'bottom-view',
     isLoading: false,
-    processingMessage: null,
     showDetailMap: {}
   },
 
@@ -97,90 +96,128 @@ Page({
     this.setData({ showDetailMap });
   },
 
-  async typeEffect(field, text) {
-    if (!text) return;
-    for (let i = 0; i <= text.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 30));
-      this.setData({
-        [`processingMessage.${field}`]: text.substring(0, i)
-      });
-      if (i % 5 === 0) this.scrollToBottom();
-    }
-    this.scrollToBottom();
-  },
-
   async onSendClick() {
-    const { inputValue, isLoading, relationshipId } = this.data;
+    const { inputValue, isLoading, relationshipId, openid, chatList } = this.data;
     if (!inputValue.trim() || isLoading || !relationshipId) return;
 
-    this.setData({ 
+    const userMessage = {
+      id: 'temp-' + Date.now(),
+      role: 'me',
+      content: inputValue,
+      time: formatSimpleTime(new Date())
+    };
+
+    const aiMessage = {
+      id: 'ai-' + Date.now(),
+      role: 'ta',
+      content: '',
+      thinking: '', // 使用 thinking 属性
       isLoading: true,
-      processingMessage: {
-        role: 'me',
-        content: '',
-        reasoning: '',
-        isLoading: true,
-        time: formatSimpleTime(new Date())
-      },
+      time: formatSimpleTime(new Date())
+    };
+
+    const newShowDetailMap = { ...this.data.showDetailMap };
+    newShowDetailMap[aiMessage.id] = true; // 默认开启显示思考过程
+
+    this.setData({
+      chatList: [...chatList, userMessage, aiMessage],
+      showDetailMap: newShowDetailMap,
+      isLoading: true,
       inputValue: ''
+    }, () => {
+      this.scrollToBottom();
     });
-    this.scrollToBottom();
 
     try {
-      // 1. 先进行 rewriteText 润色
-      const rewriteRes = await wx.cloud.callFunction({
-        name: 'quickstartFunctions',
+      const model = wx.cloud.extend.AI.createModel('deepseek');
+      const res = await model.streamText({
         data: {
-          type: 'rewriteText',
-          data: {
-            text: inputValue
-          }
+          model: "deepseek-r1",
+          messages: [
+            {
+              role: 'system',
+              content: '你是一个充满诗意、温柔体贴的文字修辞师。你的任务是将用户在“二人世界”小程序中留下的感悟、絮语或也许略显生硬的话语，润色为更加温馨、文艺、富有文学美感且饱含深情的表达。请保持原意，但让文字如墨落宣纸，余味悠长。直接给出润色后的内容。'
+            },
+            {
+              role: 'user',
+              content: inputValue
+            }
+          ]
         }
       });
 
-      if (!rewriteRes.result.success) {
-        throw new Error(rewriteRes.result.errMsg);
+      let fullContent = '';
+      let fullThinking = '';
+
+      for await (let event of res.eventStream) {
+        if (event.data === '[DONE]') break;
+        
+        const data = JSON.parse(event.data);
+        const delta = data.choices[0].delta;
+
+        if (delta.reasoning_content) {
+          fullThinking += delta.reasoning_content;
+        }
+        if (delta.content) {
+          fullContent += delta.content;
+        }
+
+        // 实时更新列表中的 AI 消息
+        const updatedChatList = this.data.chatList.map(msg => {
+          if (msg.id === aiMessage.id) {
+            return {
+              ...msg,
+              content: fullContent,
+              thinking: fullThinking
+            };
+          }
+          return msg;
+        });
+
+        this.setData({
+          chatList: updatedChatList
+        });
+        
+        if (fullContent.length % 5 === 0) {
+          this.scrollToBottom();
+        }
       }
 
-      const { reasoning_content, content } = rewriteRes.result.result;
+      // 串行更新最终状态
+      this.setData({
+        chatList: this.data.chatList.map(msg => {
+          if (msg.id === aiMessage.id) {
+            return { ...msg, isLoading: false };
+          }
+          return msg;
+        })
+      });
 
-      this.setData({ 'processingMessage.isLoading': false });
-
-      // 展示打字机效果：先思考
-      if (reasoning_content) {
-        await this.typeEffect('reasoning', reasoning_content);
-        await new Promise(resolve => setTimeout(resolve, 500)); // 稍作停顿
-      }
-
-      // 再展示润色后的正文
-      await this.typeEffect('content', content || inputValue);
-
-      // 2. 调用 sendMessage 云函数存储 (保存正文和思考过程)
+      // 最后持久化到数据库
       await wx.cloud.callFunction({
         name: 'quickstartFunctions',
         data: {
-          type: 'sendMessage',
+          type: 'saveMessage',
           data: {
             relationshipId,
-            text: content || inputValue,
-            reasoning: reasoning_content || ''
+            text: fullContent || inputValue,
+            reasoning: fullThinking || ''
           }
         }
       });
 
       this.setData({
-        processingMessage: null,
         isLoading: false
       });
+
     } catch (e) {
-      console.error(e);
+      console.error('Streaming error:', e);
       wx.showToast({
         title: '信鸽迷路了',
         icon: 'none'
       });
-      this.setData({ 
-        isLoading: false,
-        processingMessage: null
+      this.setData({
+        isLoading: false
       });
     }
   },
@@ -219,12 +256,8 @@ Page({
   },
 
   scrollToBottom() {
-    const { chatList, processingMessage } = this.data;
-    if (processingMessage) {
-      this.setData({
-        lastMessageId: 'msg-processing'
-      });
-    } else if (chatList.length > 0) {
+    const { chatList } = this.data;
+    if (chatList.length > 0) {
       const lastId = chatList[chatList.length - 1].id;
       this.setData({
         lastMessageId: `msg-${lastId}`
