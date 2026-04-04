@@ -182,7 +182,7 @@ Page({
           messages: [
             {
               role: 'system',
-              content: '你是一个充满诗意、温柔体贴的文字修辞师。你的任务是将用户在“二人世界”小程序中留下的感悟、絮语或也许略显生硬的话语，润色为更加温馨、文艺、富有文学美感且饱含深情的表达。请保持原意，但让文字如墨落宣纸，余味悠长。直接给出润色后的内容。'
+              content: '你是一个贴心的文字优化助手。你的任务是：在【完全保留用户原意、语气和口吻】的基础上，进行极简的润色。仅修正错别字和极其生硬的断句，让表达更自然、真诚、有温度。禁止增加任何华丽的修辞，禁止把生活化的文字变得文艺，禁止改变原话的长度。改写幅度严禁超过10%。'
             },
             {
               role: 'user',
@@ -193,32 +193,34 @@ Page({
       });
 
       let newContent = '';
-      for await (const event of res) {
-        if (event.data === '[DONE]') {
-          this.setData({ 
-            isLoading: false,
-            isRewriting: false 
-          });
-          wx.showToast({
-            title: '墨迹已润',
-            icon: 'none'
-          });
-          break;
-        }
-
-        try {
-          const data = JSON.parse(event.data);
-          const text = data.choices[0].delta?.content || '';
-          if (text) {
-            // Once we have text, hide the mask to show the rendering process
-            if (this.data.isRewriting) {
-              this.setData({ isRewriting: false });
-            }
-            newContent += text;
-            this.setData({ content: newContent });
+      if (res && res.eventStream) {
+        for await (const event of res.eventStream) {
+          if (event.data === '[DONE]') {
+            this.setData({ 
+              isLoading: false,
+              isRewriting: false 
+            });
+            wx.showToast({
+              title: '墨迹已润',
+              icon: 'none'
+            });
+            break;
           }
-        } catch (e) {
-          console.error('Parse error', e);
+
+          try {
+            const data = JSON.parse(event.data);
+            const text = data.choices[0].delta?.content || '';
+            if (text) {
+              // Once we have text, hide the mask to show the rendering process
+              if (this.data.isRewriting) {
+                this.setData({ isRewriting: false });
+              }
+              newContent += text;
+              this.setData({ content: newContent });
+            }
+          } catch (e) {
+            console.error('Parse error', e);
+          }
         }
       }
     } catch (err) {

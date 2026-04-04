@@ -132,11 +132,11 @@ Page({
       const model = wx.cloud.extend.AI.createModel('deepseek');
       const res = await model.streamText({
         data: {
-          model: "deepseek-r1",
+          model: "deepseek-v3",
           messages: [
             {
               role: 'system',
-              content: '你是一个充满诗意、温柔体贴的文字修辞师。你的任务是将用户在“二人世界”小程序中留下的感悟、絮语或也许略显生硬的话语，润色为更加温馨、文艺、富有文学美感且饱含深情的表达。请保持原意，但让文字如墨落宣纸，余味悠长。直接给出润色后的内容。'
+              content: '你是一个平和的语气调节员。你的任务是：轻微优化用户的文字，使其听起来更平和、真诚，减少误解。必须保持用户原本的说话习惯，严禁使用翻译腔或AI味十足的文艺词汇。只需要像是一个温和的朋友在帮忙理顺话语，而不是诗人。'
             },
             {
               role: 'user',
@@ -149,37 +149,43 @@ Page({
       let fullContent = '';
       let fullThinking = '';
 
-      for await (let event of res.eventStream) {
-        if (event.data === '[DONE]') break;
-        
-        const data = JSON.parse(event.data);
-        const delta = data.choices[0].delta;
+      if (res && res.eventStream) {
+        for await (let event of res.eventStream) {
+          if (event.data === '[DONE]') break;
+          
+          try {
+            const data = JSON.parse(event.data);
+            const delta = data.choices[0].delta;
 
-        if (delta.reasoning_content) {
-          fullThinking += delta.reasoning_content;
-        }
-        if (delta.content) {
-          fullContent += delta.content;
-        }
+            if (delta.reasoning_content) {
+              fullThinking += delta.reasoning_content;
+            }
+            if (delta.content) {
+              fullContent += delta.content;
+            }
 
-        // 实时更新列表中的 AI 消息
-        const updatedChatList = this.data.chatList.map(msg => {
-          if (msg.id === aiMessage.id) {
-            return {
-              ...msg,
-              content: fullContent,
-              thinking: fullThinking
-            };
+            // 实时更新列表中的 AI 消息
+            const updatedChatList = this.data.chatList.map(msg => {
+              if (msg.id === aiMessage.id) {
+                return {
+                  ...msg,
+                  content: fullContent,
+                  thinking: fullThinking
+                };
+              }
+              return msg;
+            });
+
+            this.setData({
+              chatList: updatedChatList
+            });
+            
+            if (fullContent.length % 5 === 0) {
+              this.scrollToBottom();
+            }
+          } catch (e) {
+            console.error('Parse error', e);
           }
-          return msg;
-        });
-
-        this.setData({
-          chatList: updatedChatList
-        });
-        
-        if (fullContent.length % 5 === 0) {
-          this.scrollToBottom();
         }
       }
 

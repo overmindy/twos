@@ -447,7 +447,7 @@ const rewriteText = async (event) => {
 
   try {
     const res = await ai.chat.completions.create({
-      model: 'deepseek-r1-0528',
+      model: 'deepseek-v3.2',
       messages: [
         {
           role: 'system',
