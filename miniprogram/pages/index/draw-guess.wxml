@@ -1,0 +1,91 @@
+<view class="container">
+  <view class="paper-title-container">
+    <text class="page-title">你画我猜</text>
+    <view class="title-underline"></view>
+  </view>
+
+  <view class="game-area {{isFinished ? 'finished' : ''}}">
+    <!-- 提示区 -->
+    <view class="hint-bar" wx:if="{{gameStatus === 'playing'}}">
+      <view class="drawer-hint" wx:if="{{isDrawer}}">
+        <text class="hint-text">请画出：</text>
+        <text class="target-word">{{targetWord}}</text>
+      </view>
+      <view class="guesser-hint" wx:else>
+        <text class="hint-text">猜猜ta在画什么？</text>
+      </view>
+    </view>
+
+    <!-- Canvas 画板 -->
+    <canvas 
+      type="2d" 
+      id="drawCanvas" 
+      class="draw-canvas"
+      bindtouchstart="touchStart"
+      bindtouchmove="touchMove"
+      bindtouchend="touchEnd"
+    ></canvas>
+
+    <!-- 工具栏 (仅绘画者可见) -->
+    <view class="toolbar" wx:if="{{gameStatus === 'playing' && isDrawer}}">
+      <view class="color-picker">
+        <view 
+          wx:for="{{colors}}" 
+          wx:key="*this"
+          class="color-item {{currentColor === item ? 'active' : ''}}"
+          style="background-color: {{item}}"
+          bindtap="selectColor"
+          data-color="{{item}}"
+        ></view>
+      </view>
+      <view class="brush-picker">
+        <view 
+          wx:for="{{brushes}}" 
+          wx:key="size"
+          class="brush-item {{currentBrush === item.size ? 'active' : ''}}"
+          bindtap="selectBrush"
+          data-size="{{item.size}}"
+        >
+          <view class="brush-dot" style="width: {{item.size}}px; height: {{item.size}}px;"></view>
+        </view>
+      </view>
+      <view class="tool-btns">
+        <button class="btn-clear" bindtap="clearCanvas">清空</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作区 -->
+  <view class="footer-area">
+    <view class="status-tips" wx:if="{{gameStatus === 'waiting'}}">
+      <text>等待另一半加入...</text>
+    </view>
+    <view class="status-tips" wx:elif="{{gameStatus === 'preparing'}}">
+      <button class="btn-ready {{isMyReady ? 'ready' : ''}}" bindtap="handleReady">
+        {{isMyReady ? '已就绪' : '准备开始'}}
+      </button>
+    </view>
+    <view class="status-tips" wx:elif="{{gameStatus === 'playing'}}">
+      <view class="guess-input-container" wx:if="{{!isDrawer}}">
+        <input 
+          class="guess-input" 
+          placeholder="在这里输入你的猜想" 
+          bindinput="onInputGuess" 
+          value="{{guessInput}}"
+          confirm-type="send"
+          bindconfirm="checkGuess"
+        />
+        <button class="btn-guess" bindtap="checkGuess">猜！</button>
+      </view>
+      <text wx:else>快挥洒你的笔墨吧</text>
+    </view>
+    <view class="status-tips" wx:elif="{{gameStatus === 'finished'}}">
+      <text class="win-text">心有灵犀！答案是：{{targetWord}}</text>
+      <button class="btn-restart" bindtap="handleReady">再来一局</button>
+    </view>
+  </view>
+
+  <view class="footer-seal" bindtap="goBack">
+    <text class="seal-text">返回书卷</text>
+  </view>
+</view>

@@ -19,5 +19,11 @@ Page({
     wx.navigateTo({
       url: '/pages/index/scratch',
     });
+  },
+
+  goToDrawGuess() {
+    wx.navigateTo({
+      url: '/pages/index/draw-guess',
+    });
   }
 });

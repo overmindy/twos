@@ -10,7 +10,8 @@
     "pages/index/games",
     "pages/index/coin-flip",
     "pages/index/gobang",
-    "pages/index/scratch"
+    "pages/index/scratch",
+    "pages/index/draw-guess"
   ],
   "window": {
     "backgroundColor": "#FDFCF8",

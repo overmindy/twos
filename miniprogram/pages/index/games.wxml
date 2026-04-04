@@ -47,6 +47,20 @@
         <view class="arrow-seal">印</view>
       </view>
     </view>
+
+    <!-- 你画我猜 -->
+    <view class="game-card" bindtap="goToDrawGuess">
+      <view class="card-inner">
+        <view class="game-icon">
+          <image class="game-icon-img" src="../../images/icons/voice.png" mode="aspectFit"></image>
+        </view>
+        <view class="game-info">
+          <text class="game-name">你画我猜</text>
+          <text class="game-desc">我的笔尖，连着你的直觉</text>
+        </view>
+        <view class="arrow-seal">印</view>
+      </view>
+    </view>
   </view>
 
   <!-- 底部印记 -->
