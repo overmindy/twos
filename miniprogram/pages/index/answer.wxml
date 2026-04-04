@@ -81,9 +81,9 @@
             <view class="voice-seal-wrapper" catchtouchmove="true">
               <!-- 巨大的麦克风印章 -->
               <view class="mic-seal {{isRecording ? 'pulse' : ''}} {{voicePath ? 'has-voice' : ''}}" 
-                    bindtap="{{isAnswered || voicePath ? 'onPlayVoice' : ''}}"
-                    longpress="{{!isAnswered ? 'onStartRecord' : ''}}"
-                    bindtouchend="{{!isAnswered && isRecording ? 'onStopRecord' : ''}}">
+                    bindtap="onPlayVoice"
+                    bindlongpress="onStartRecord"
+                    bindtouchend="onStopRecord">
                 <view class="mic-seal-inner">
                   <image class="mic-icon" src="../../images/icons/voice.png" mode="aspectFit"></image>
                 </view>

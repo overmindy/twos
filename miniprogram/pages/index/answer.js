@@ -367,32 +367,45 @@ Page({
   },
 
   onStartRecord() {
+    console.log('长按触发：onStartRecord');
     if (this.data.isAnswered || this.data.isRecording) return;
     
-    // 首个动作：设置状态
-    this.setData({ 
-      isRecording: true,
-      voicePath: ''
+    wx.authorize({
+      scope: 'scope.record',
+      success: () => {
+        // 首个动作：设置状态
+        this.setData({ 
+          isRecording: true,
+          voicePath: ''
+        });
+
+        // 震动反馈
+        wx.vibrateShort({ type: 'light' });
+
+        try {
+          this.recorderManager.start({
+            duration: 60000,
+            sampleRate: 44100,
+            numberOfChannels: 1,
+            encodeBitRate: 192000,
+            format: 'm4a'
+          });
+        } catch (err) {
+          console.error('Start record failed', err);
+          this.setData({ isRecording: false });
+        }
+      },
+      fail: () => {
+        wx.showToast({
+          title: '需录音权限',
+          icon: 'none'
+        });
+      }
     });
-
-    // 震动反馈
-    wx.vibrateShort({ type: 'light' });
-
-    try {
-      this.recorderManager.start({
-        duration: 60000,
-        sampleRate: 44100,
-        numberOfChannels: 1,
-        encodeBitRate: 192000,
-        format: 'm4a'
-      });
-    } catch (err) {
-      console.error('Start record failed', err);
-      this.setData({ isRecording: false });
-    }
   },
 
   onStopRecord() {
+    console.log('停止录音触发：onStopRecord');
     if (this.data.isAnswered || !this.data.isRecording) return;
     
     // 震动反馈
@@ -400,6 +413,7 @@ Page({
 
     try {
       this.recorderManager.stop();
+      this.setData({ isRecording: false });
     } catch (err) {
       console.error('Stop record failed', err);
       this.setData({ isRecording: false });
@@ -407,6 +421,7 @@ Page({
   },
 
   onPlayVoice() {
+    if (this.data.isRecording) return;
     if (!this.data.voicePath) return;
     const innerAudioContext = wx.createInnerAudioContext();
     innerAudioContext.src = this.data.voicePath;
