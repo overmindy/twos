@@ -17,12 +17,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 80vh;
+  min-height: 85vh;
 }
 
 .paper-header {
   text-align: center;
-  margin-bottom: 80rpx;
+  margin-bottom: 40rpx;
 }
 
 .title {
@@ -40,12 +40,71 @@
   margin-top: 10rpx;
 }
 
+/* Betting Area */
+.bet-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+  padding: 20rpx;
+  border-top: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.bet-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+  letter-spacing: 2rpx;
+}
+
+.bet-options {
+  display: flex;
+  gap: 60rpx;
+  margin-bottom: 20rpx;
+}
+
+.bet-btn {
+  width: 100rpx !important;
+  height: 100rpx !important;
+  border-radius: 50%;
+  background: transparent;
+  border: 1rpx solid #E0D8C0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: "Noto Serif SC", serif;
+  font-size: 32rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.bet-btn.active {
+  background: #2E4E7E;
+  color: #FFFFFF;
+  border-color: #2E4E7E;
+  box-shadow: 0 4rpx 12rpx rgba(46, 78, 126, 0.2);
+}
+
+.bet-status {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.status-msg {
+  font-size: 20rpx;
+  color: #AAA;
+}
+
 /* Coin 3D Logic */
 .coin-container {
-  width: 300rpx;
-  height: 300rpx;
+  width: 280rpx;
+  height: 280rpx;
   perspective: 1000px;
-  margin: 60rpx 0;
+  margin: 40rpx 0;
 }
 
 .coin {
@@ -53,7 +112,7 @@
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 2.5s cubic-bezier(0.1, 0.5, 0.1, 1);
 }
 
 .coin-side {
@@ -104,24 +163,17 @@
   transform: rotateY(180deg);
 }
 
-/* Animation States */
 .is-flipping {
-  /* Using a large rotation for flipping effect */
   transform: rotateY(calc(var(--flip-count) * 180deg));
 }
 
-.show-head {
-  transform: rotateY(0deg);
-}
-
-.show-tail {
-  transform: rotateY(180deg);
-}
+.show-head { transform: rotateY(0deg); }
+.show-tail { transform: rotateY(180deg); }
 
 /* Result Box */
 .result-box {
-  margin-top: 40rpx;
-  height: 80rpx;
+  margin-top: 20rpx;
+  min-height: 120rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -129,16 +181,26 @@
   transition: opacity 0.5s;
 }
 
-.result-box.visible {
-  opacity: 1;
+.result-box.visible { opacity: 1; }
+
+.result-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
 }
 
 .result-text {
   font-family: "Noto Serif SC", serif;
   font-size: 32rpx;
-  color: #B22222;
-  font-weight: 500;
+  color: #333;
   letter-spacing: 2rpx;
+}
+
+.winner-text {
+  font-size: 26rpx;
+  color: #B22222;
+  font-style: italic;
 }
 
 /* Action Area */
@@ -151,38 +213,41 @@
 }
 
 .flip-btn {
-  width: 120rpx;
-  height: 120rpx;
+  width: 140rpx;
+  height: 140rpx;
   border-radius: 50%;
-  background: #B22222;
+  background: #2F2F2F;
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 4rpx 4rpx 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.15);
   border: none;
   padding: 0;
+  transition: all 0.2s;
+}
+
+.flip-btn.disabled {
+  background: #E0E0E0;
+  box-shadow: none;
+}
+
+.flip-btn.reset {
+  background: #B22222;
 }
 
 .flip-btn:active {
-  transform: translate(2rpx, 2rpx);
-  box-shadow: 2rpx 2rpx 0 rgba(0, 0, 0, 0.2);
-}
-
-.flip-btn[disabled] {
-  background: #E0D8C0;
-  color: #FFFFFF;
+  transform: scale(0.95);
 }
 
 .btn-text {
   font-family: "Noto Serif SC", serif;
-  font-size: 48rpx;
-  font-weight: bold;
+  font-size: 40rpx;
 }
 
 .hint-text {
-  font-size: 20rpx;
-  color: #888888;
+  font-size: 22rpx;
+  color: #AAA;
   font-style: italic;
 }
 

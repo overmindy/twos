@@ -265,6 +265,14 @@ Page({
   },
 
   restartGame() {
+    this.setData({
+      board: Array(15).fill(null).map(() => Array(15).fill(null)),
+      gameStatus: 'preparing',
+      winner: null,
+      lastMove: { x: -1, y: -1 },
+      isMyReady: false,
+      room: null
+    });
     this.initGame();
   },
 

@@ -150,8 +150,6 @@ Page({
     const gameStatus = room.status.toLowerCase();
 
     // 确定谁是画画的人 (简单逻辑：playerA 先画)
-    // 实际可以根据房主或者轮流，这里暂定 playerA 是画画者
-    // 也可以通过 gameState.currentTurn 决定
     const isDrawer = room.gameState.currentTurn === this.myOpenid;
 
     const newState = {
@@ -159,23 +157,15 @@ Page({
       isMyReady,
       gameStatus,
       isDrawer,
-      targetWord: room.gameState.data.word || ''
+      targetWord: room.gameState.data ? (room.gameState.data.word || '') : ''
     };
 
     if (room.status === 'PLAYING' && room.gameState.data) {
       const { paths } = room.gameState.data;
-      
-      if (paths && paths.length > 0) {
+      if (paths) {
         this.renderPaths(paths);
-      } else {
-        // 如果 paths 为空，说明可能被清空了
-        if (this.lastDrawnPathIndex !== -1) {
-          this.clearCanvasLocal();
-          this.lastDrawnPathIndex = -1;
-        }
       }
     } else if (room.status === 'FINISHED') {
-      // 结束状态，不再更新笔迹，只展示结果
       newState.gameStatus = 'finished';
     }
 
@@ -203,18 +193,27 @@ Page({
 
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        
+        // Canvas 初始化完成后，如果有路径，渲染一下
+        if (this.data.room && this.data.room.gameState.data && this.data.room.gameState.data.paths) {
+          this.renderPaths(this.data.room.gameState.data.paths);
+        }
       });
   },
 
   renderPaths(paths) {
     if (!this.ctx) return;
     
-    // 如果远程路径索引比本地小，说明画布被清空了或者重置了
-    if (paths.length <= this.lastDrawnPathIndex) {
+    // 如果远程路径长度为0，说明明确被重置了
+    if (paths.length === 0) {
+      if (this.lastDrawnPathIndex !== -1) {
         this.clearCanvasLocal();
         this.lastDrawnPathIndex = -1;
+      }
+      return;
     }
 
+    // 只绘制新增的路径
     for (let i = this.lastDrawnPathIndex + 1; i < paths.length; i++) {
       const path = paths[i];
       if (path.type === 'clear') {
@@ -223,7 +222,7 @@ Page({
         this.drawPath(path);
       }
     }
-    this.lastDrawnPathIndex = paths.length - 1;
+    this.lastDrawnPathIndex = Math.max(this.lastDrawnPathIndex, paths.length - 1);
   },
 
   drawPath(path) {
@@ -304,7 +303,6 @@ Page({
 
   async clearCanvas() {
     if (!this.data.isDrawer) return;
-    this.clearCanvasLocal();
     try {
       await db.collection('game_rooms').doc(this.data.roomId).update({
         data: {
@@ -312,10 +310,60 @@ Page({
           updateTime: db.serverDate()
         }
       });
-      this.lastDrawnPathIndex++;
     } catch (e) {
       console.error('Failed to clear canvas', e);
     }
+  },
+
+  async refreshWord() {
+    if (!this.data.isDrawer) return;
+    wx.showLoading({ title: '换题中...' });
+    try {
+      await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: {
+          type: 'refreshDrawGuessWord',
+          data: { roomId: this.data.roomId }
+        }
+      });
+    } catch (e) {
+      console.error(e);
+      wx.showToast({ title: '换题失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  async setCustomWord() {
+    if (!this.data.isDrawer) return;
+    
+    wx.showModal({
+      title: '自定义题目',
+      editable: true,
+      placeholderText: '请输入题目词汇',
+      success: async (res) => {
+        if (res.confirm && res.content) {
+          const word = res.content.trim();
+          if (!word) return;
+          
+          wx.showLoading({ title: '同步中...' });
+          try {
+            await db.collection('game_rooms').doc(this.data.roomId).update({
+              data: {
+                'gameState.data.word': word,
+                'gameState.data.paths': [], // 换题时清空画布
+                updateTime: db.serverDate()
+              }
+            });
+          } catch (e) {
+            console.error(e);
+            wx.showToast({ title: '设置失败', icon: 'none' });
+          } finally {
+            wx.hideLoading();
+          }
+        }
+      }
+    });
   },
 
   clearCanvasLocal() {

@@ -6,13 +6,13 @@
 
   <view class="game-area {{isFinished ? 'finished' : ''}}">
     <!-- 提示区 -->
-    <view class="hint-bar" wx:if="{{gameStatus === 'playing'}}">
+    <view class="hint-bar" wx:if="{{gameStatus === 'playing' || (gameStatus === 'preparing' && isDrawer)}}">
       <view class="drawer-hint" wx:if="{{isDrawer}}">
         <text class="hint-text">请画出：</text>
         <text class="target-word">{{targetWord}}</text>
       </view>
       <view class="guesser-hint" wx:else>
-        <text class="hint-text">猜猜ta在画什么？</text>
+        <text class="hint-text">{{gameStatus === 'preparing' ? '等待对方准备/画画...' : '猜猜ta在画什么？'}}</text>
       </view>
     </view>
 
@@ -50,6 +50,8 @@
         </view>
       </view>
       <view class="tool-btns">
+        <button class="btn-tool" bindtap="refreshWord">换题</button>
+        <button class="btn-tool" bindtap="setCustomWord">自定义</button>
         <button class="btn-clear" bindtap="clearCanvas">清空</button>
       </view>
     </view>
@@ -61,9 +63,15 @@
       <text>等待另一半加入...</text>
     </view>
     <view class="status-tips" wx:elif="{{gameStatus === 'preparing'}}">
-      <button class="btn-ready {{isMyReady ? 'ready' : ''}}" bindtap="handleReady">
-        {{isMyReady ? '已就绪' : '准备开始'}}
-      </button>
+      <view class="prep-btns">
+        <button class="btn-ready {{isMyReady ? 'ready' : ''}}" bindtap="handleReady">
+          {{isMyReady ? '已就绪' : '准备开始'}}
+        </button>
+        <block wx:if="{{isDrawer}}">
+          <button class="btn-tool-outline" bindtap="refreshWord">换一题</button>
+          <button class="btn-tool-outline" bindtap="setCustomWord">自定题目</button>
+        </block>
+      </view>
     </view>
     <view class="status-tips" wx:elif="{{gameStatus === 'playing'}}">
       <view class="guess-input-container" wx:if="{{!isDrawer}}">

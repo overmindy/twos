@@ -6,16 +6,30 @@
       <text class="subtitle">墨香一掷，凡事随缘</text>
     </view>
 
+    <view class="bet-area {{room.status === 'FINISHED' ? 'disabled' : ''}}">
+      <view class="bet-label">落墨选定</view>
+      <view class="bet-options">
+        <button class="bet-btn {{myBet === 'head' ? 'active' : ''}}" bindtap="placeBet" data-bet="head">
+          <text>字</text>
+        </button>
+        <button class="bet-btn {{myBet === 'tail' ? 'active' : ''}}" bindtap="placeBet" data-bet="tail">
+          <text>花</text>
+        </button>
+      </view>
+      <view class="bet-status">
+        <text class="status-msg">{{myBet ? '你已选定' : '请选择...'}}</text>
+        <text class="status-msg">{{otherBet ? '对方已选' : '对方思考中'}}</text>
+      </view>
+    </view>
+
     <view class="coin-container">
       <view class="coin {{flipping ? 'is-flipping' : ''}} {{result === 'tail' ? 'show-tail' : 'show-head'}}" style="--flip-count: {{flipCount}};">
-        <!-- 硬币正面 (Head) - 墨色白描 -->
         <view class="coin-side head">
           <view class="coin-inner">
             <text class="coin-text">字</text>
             <view class="ink-ring"></view>
           </view>
         </view>
-        <!-- 硬币背面 (Tail) - 墨色白描 -->
         <view class="coin-side tail">
           <view class="coin-inner">
             <text class="coin-text">花</text>
@@ -26,14 +40,27 @@
     </view>
 
     <view class="result-box {{showResult ? 'visible' : ''}}">
-      <text class="result-text">{{result === 'head' ? '「 字 · 顺从本心 」' : '「 花 · 另辟蹊径 」'}}</text>
+      <view class="result-content" wx:if="{{room.status === 'FINISHED'}}">
+        <text class="result-text">{{result === 'head' ? '「 字 · 顺从本心 」' : '「 花 · 另辟蹊径 」'}}</text>
+        <text class="winner-text" wx:if="{{winnerNickname}}">
+          {{winnerNickname === '平局' ? '双方皆中，实乃默契' : '胜者：' + winnerNickname}}
+        </text>
+      </view>
     </view>
 
     <view class="action-area">
-      <button class="flip-btn" bindtap="startFlip" disabled="{{flipping}}">
-        <text class="btn-text">掷</text>
-      </button>
-      <text class="hint-text">点击掷出，对方将同步见证</text>
+      <block wx:if="{{room.status !== 'FINISHED'}}">
+        <button class="flip-btn {{(!myBet || !otherBet) ? 'disabled' : ''}}" bindtap="startFlip" disabled="{{flipping || !myBet || !otherBet}}">
+          <text class="btn-text">掷</text>
+        </button>
+        <text class="hint-text" wx:if="{{!myBet || !otherBet}}">待双方选定后方可投掷</text>
+        <text class="hint-text" wx:else>点击掷出，同步见证结果</text>
+      </block>
+      <block wx:else>
+        <button class="flip-btn reset" bindtap="resetGame">
+          <text class="btn-text">再掷</text>
+        </button>
+      </block>
     </view>
   </view>
 

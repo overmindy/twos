@@ -7,110 +7,174 @@ Page({
     flipCount: 0,
     showResult: false,
     watcher: null,
-    lastGameId: ''
+    roomId: '',
+    room: null,
+    myBet: null,
+    otherBet: null,
+    winnerNickname: '',
+    myOpenid: '',
+    relationship: null
   },
 
-  onLoad() {
-    this.initWatcher();
-  },
+  async onLoad() {
+    wx.showLoading({ title: '加载中...' });
+    try {
+      const { result: openidRes } = await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'getOpenId' }
+      });
+      this.setData({ myOpenid: openidRes.openid });
 
-  onUnload() {
-    if (this.data.watcher) {
-      this.data.watcher.close();
+      const { result: relRes } = await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'getActiveRelationship' }
+      });
+
+      if (relRes.success && relRes.relationship) {
+        this.setData({ relationship: relRes.relationship });
+        await this.handleReady();
+      } else {
+        wx.showToast({ title: '未找到活跃关系', icon: 'none' });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      wx.hideLoading();
     }
   },
 
-  initWatcher() {
-    const watcher = db.collection('games')
-      .where({
-        type: 'coin'
-      })
-      .orderBy('createTime', 'desc')
-      .limit(1)
-      .watch({
-        onChange: (snapshot) => {
-          if (snapshot.docs.length > 0) {
-            const game = snapshot.docs[0];
-            
-            // Only trigger if it's a new record we haven't processed
-            if (game._id !== this.data.lastGameId) {
-              const now = new Date().getTime();
-              const createTime = game.createTime ? new Date(game.createTime).getTime() : now;
-              
-              if (now - createTime < 10000) { // Within 10 seconds
-                this.setData({ lastGameId: game._id });
-                this.performFlip(game.result);
-              } else {
-                if (!this.data.lastGameId) {
-                  this.setData({ 
-                    lastGameId: game._id,
-                    result: game.result,
-                    showResult: true
-                  });
-                }
-              }
-            }
+  async handleReady() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: {
+          type: 'handleGameReady',
+          data: {
+            relationshipId: this.data.relationship._id,
+            gameType: 'coin'
           }
-        },
-        onError: (err) => {
-          console.error('Watcher error', err);
         }
       });
+
+      if (result.success) {
+        this.setData({ roomId: result.room._id });
+        this.watchRoom(result.room._id);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  watchRoom(roomId) {
+    if (this.data.watcher) this.data.watcher.close();
+    const watcher = db.collection('game_rooms').doc(roomId).watch({
+      onChange: (snapshot) => {
+        if (snapshot.docs.length > 0) {
+          this.updateRoomState(snapshot.docs[0]);
+        }
+      },
+      onError: (err) => console.error(err)
+    });
     this.setData({ watcher });
   },
 
-  startFlip() {
-    if (this.data.flipping) return;
-
-    // Show a loading toast while communicating with cloud
-    wx.showLoading({ title: '墨落纸上...' });
-
-    const relationshipId = wx.getStorageSync('currentRelationshipId') || '';
-
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: {
-        type: 'flipCoin',
-        data: {
-          relationshipId: relationshipId
-        }
-      }
-    }).then(res => {
-      wx.hideLoading();
-      if (res.result && res.result.success) {
-        console.log('Game record created by cloud');
+  updateRoomState(room) {
+    const isPlayerA = room.players.playerA.openid === this.data.myOpenid;
+    const myBet = isPlayerA ? room.gameState.data.playerABet : room.gameState.data.playerBBet;
+    const otherBet = isPlayerA ? room.gameState.data.playerBBet : room.gameState.data.playerABet;
+    
+    let winnerNickname = '';
+    if (room.status === 'FINISHED' && room.gameState.winner) {
+      if (room.gameState.winner === 'draw') {
+        winnerNickname = '平局';
       } else {
-        wx.showToast({ title: '笔墨凝滞', icon: 'none' });
+        winnerNickname = room.gameState.winner === room.players.playerA.openid ? 
+          (this.data.relationship.userAInfo?.nickname || '甲方') : 
+          (this.data.relationship.userBInfo?.nickname || '乙方');
       }
-    }).catch(err => {
-      wx.hideLoading();
-      console.error('Failed to call flipCoin', err);
-      wx.showToast({ title: '笔墨凝滞', icon: 'none' });
+    }
+
+    const oldResult = this.data.result;
+    const newResult = room.gameState.data.result;
+
+    this.setData({
+      room,
+      myBet,
+      otherBet,
+      winnerNickname
     });
+
+    if (newResult && newResult !== oldResult && !this.data.flipping) {
+      this.performFlip(newResult);
+    } else if (room.status === 'FINISHED' && newResult && !this.data.flipping) {
+      this.setData({ result: newResult, showResult: true });
+    }
+  },
+
+  async placeBet(e) {
+    const { bet } = e.currentTarget.dataset;
+    if (this.data.myBet || this.data.room.status === 'FINISHED') return;
+
+    wx.showLoading({ title: '正襟危坐...' });
+    try {
+      await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: {
+          type: 'placeCoinBet',
+          data: { roomId: this.data.roomId, bet }
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  async startFlip() {
+    if (this.data.flipping || !this.data.myBet || !this.data.otherBet) return;
+
+    wx.showLoading({ title: '乾坤一掷...' });
+    try {
+      await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: {
+          type: 'flipCoin',
+          data: { roomId: this.data.roomId }
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   performFlip(result) {
-    if (this.data.flipping) return;
-
-    // Incremental flip count to ensure animation always plays. 
-    // We want it to end on the correct side.
-    let baseRotation = 14 + Math.floor(Math.random() * 4); // 14-18 half-turns
+    let baseRotation = 14 + Math.floor(Math.random() * 4);
     if (result === 'head' && baseRotation % 2 !== 0) baseRotation++;
     if (result === 'tail' && baseRotation % 2 === 0) baseRotation++;
 
     this.setData({
       flipping: true,
       showResult: false,
-      flipCount: baseRotation
+      flipCount: baseRotation,
+      result: result
     });
 
-    // Wait for 2.5 seconds animation (synced with CSS transition)
     setTimeout(() => {
       this.setData({
         flipping: false,
-        result: result,
         showResult: true
       });
     }, 2500);
+  },
+
+  resetGame() {
+    this.handleReady();
+  },
+
+  onUnload() {
+    if (this.data.watcher) this.data.watcher.close();
   }
 });

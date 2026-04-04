@@ -645,28 +645,73 @@ const ensureUserRecord = async (event) => {
 // 抛硬币 (云端共识)
 const flipCoin = async (event) => {
   const data = event.data || {};
-  const { relationshipId } = data;
+  const { relationshipId, roomId } = data;
   const { OPENID } = cloud.getWXContext();
 
-  if (!relationshipId || !OPENID) {
+  if ((!relationshipId && !roomId) || !OPENID) {
     return { success: false, errMsg: '参数缺失或身份无效' };
   }
 
   try {
     const result = Math.random() > 0.5 ? 'head' : 'tail';
     
-    await db.collection('games').add({
-      data: {
-        type: 'coin',
-        relationshipId,
-        initiator: OPENID,
-        result,
-        status: 'completed',
-        createTime: db.serverDate()
+    if (roomId) {
+      // 房间模式
+      const { data: room } = await db.collection('game_rooms').doc(roomId).get();
+      if (!room) return { success: false, errMsg: '房间不存在' };
+      
+      const { playerABet, playerBBet } = room.gameState.data;
+      if (!playerABet || !playerBBet) {
+        return { success: false, errMsg: '双方都选好后才能投掷哦' };
       }
-    });
 
-    return { success: true, result };
+      // 计算胜者
+      let winner = null;
+      if (playerABet === result && playerBBet !== result) {
+        winner = room.players.playerA.openid;
+      } else if (playerBBet === result && playerABet !== result) {
+        winner = room.players.playerB.openid;
+      } else if (playerABet === result && playerBBet === result) {
+        winner = 'draw';
+      }
+
+      await db.collection('game_rooms').doc(roomId).update({
+        data: {
+          'gameState.data.result': result,
+          'gameState.data.flipping': false,
+          'gameState.winner': winner,
+          status: 'FINISHED',
+          updateTime: db.serverDate()
+        }
+      });
+
+      // 写入历史
+      await db.collection('game_history').add({
+        data: {
+          relationshipId: room.relationshipId,
+          gameType: 'coin',
+          winner: winner,
+          result: result,
+          endTime: db.serverDate()
+        }
+      });
+
+      return { success: true, result, winner };
+
+    } else {
+      // 简单模式
+      await db.collection('games').add({
+        data: {
+          type: 'coin',
+          relationshipId,
+          initiator: OPENID,
+          result,
+          status: 'completed',
+          createTime: db.serverDate()
+        }
+      });
+      return { success: true, result };
+    }
   } catch (e) {
     return { success: false, errMsg: e.message };
   }
@@ -856,6 +901,20 @@ const placeGobangPiece = async (event) => {
       if (win) {
         updateData.status = 'FINISHED';
         updateData['gameState.winner'] = OPENID;
+
+        // 写入游戏历史
+        const startTime = game.createTime ? new Date(game.createTime) : new Date();
+        const duration = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+        
+        await db.collection('game_history').add({
+          data: {
+            relationshipId: game.relationshipId,
+            gameType: 'gobang',
+            winner: OPENID,
+            duration: duration,
+            endTime: db.serverDate()
+          }
+        });
       } else {
         updateData['gameState.currentTurn'] = OPENID === playerA ? playerB : playerA;
       }
@@ -868,6 +927,20 @@ const placeGobangPiece = async (event) => {
       if (win) {
         updateData.status = 'won';
         updateData.winner = color;
+
+        // 写入游戏历史
+        const startTime = game.createTime ? new Date(game.createTime) : new Date();
+        const duration = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+
+        await db.collection('game_history').add({
+          data: {
+            relationshipId: game.relationshipId,
+            gameType: 'gobang',
+            winner: color === 'black' ? game.blackPlayer : game.whitePlayer,
+            duration: duration,
+            endTime: db.serverDate()
+          }
+        });
       } else {
         updateData.currentTurn = color === 'black' ? 'white' : 'black';
       }
@@ -959,6 +1032,13 @@ const handleGameReady = async (event) => {
       if (gameType === 'gobang') {
         updateData['gameState.data'] = {
           board: Array(15).fill(null).map(() => Array(15).fill(null))
+        };
+      } else if (gameType === 'coin') {
+        updateData['gameState.data'] = {
+          playerABet: null,
+          playerBBet: null,
+          result: null,
+          flipping: false
         };
       } else if (gameType === 'scratch') {
         updateData['gameState.data'] = {
@@ -1060,6 +1140,40 @@ const updateScratchPoints = async (event) => {
         updateTime: db.serverDate()
       }
     });
+    return { success: true };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 投掷硬币下注
+const placeCoinBet = async (event) => {
+  const { roomId, bet } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!roomId || !bet) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    const { data: room } = await db.collection('game_rooms').doc(roomId).get();
+    if (!room) return { success: false, errMsg: '房间不存在' };
+
+    const isPlayerA = room.players.playerA.openid === OPENID;
+    const isPlayerB = room.players.playerB.openid === OPENID;
+
+    if (!isPlayerA && !isPlayerB) return { success: false, errMsg: '你不是房间成员' };
+
+    const updateData = {
+      updateTime: db.serverDate()
+    };
+    if (isPlayerA) {
+      updateData['gameState.data.playerABet'] = bet;
+    } else {
+      updateData['gameState.data.playerBBet'] = bet;
+    }
+
+    await db.collection('game_rooms').doc(roomId).update({ data: updateData });
     return { success: true };
   } catch (e) {
     return { success: false, errMsg: e.message };
@@ -1170,9 +1284,40 @@ exports.main = async (event, context) => {
       return await closeGameRoom(event);
     case "updateScratchPoints":
       return await updateScratchPoints(event);
+    case "placeCoinBet":
+      return await placeCoinBet(event);
     case "sendMessage":
       return await sendMessage(event);
     case "clearChatMessages":
       return await clearChatMessages(event);
+    case "refreshDrawGuessWord":
+      return await refreshDrawGuessWord(event);
+  }
+};
+
+// 刷新你画我猜题目
+const refreshDrawGuessWord = async (event) => {
+  const { roomId } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!roomId || !OPENID) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    const { list } = await db.collection('game_words').aggregate().sample({ size: 1 }).end();
+    const newWord = list.length > 0 ? list[0].word : '苹果';
+    
+    await db.collection('game_rooms').doc(roomId).update({
+      data: {
+        'gameState.data.word': newWord,
+        'gameState.data.paths': [], // 换题时清空画布
+        updateTime: db.serverDate()
+      }
+    });
+
+    return { success: true, word: newWord };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
   }
 };

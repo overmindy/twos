@@ -55,6 +55,22 @@
 
   <view class="back-link" bindtap="goBack">返回博弈大厅</view>
 
+  <!-- 结算蒙层 UI -->
+  <view wx:if="{{gameStatus === 'won'}}" class="settlement-mask">
+    <view class="settlement-card">
+      <view class="settlement-title">对弈结束</view>
+      <view class="winner-info">
+        <view class="winner-label">胜者</view>
+        <view class="winner-nickname">{{winner === 'black' ? (blackNickname || '黑方') : (whiteNickname || '白方')}}</view>
+        <view class="stone {{winner}}"></view>
+      </view>
+      <view class="settlement-btns">
+        <button class="btn-primary" bindtap="restartGame">再弈一局</button>
+        <button class="btn-secondary" bindtap="goBack">返回游乐场</button>
+      </view>
+    </view>
+  </view>
+
   <!-- 准备蒙层 UI -->
   <view wx:if="{{room && room.status !== 'PLAYING'}}" class="ready-mask">
     <view class="ready-content">
