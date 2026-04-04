@@ -54,6 +54,7 @@ Page({
     this.recorderManager = wx.getRecorderManager();
     this.recorderManager.onStart(() => {
       console.log('recorder start');
+      this.setData({ isRecording: true });
     });
     this.recorderManager.onStop((res) => {
       console.log('recorder stop', res);
@@ -368,28 +369,41 @@ Page({
   onStartRecord() {
     if (this.data.isAnswered || this.data.isRecording) return;
     
-    // 如果是重新录制，先清空路径
+    // 首个动作：设置状态
     this.setData({ 
-      voicePath: '',
-      isRecording: true 
+      isRecording: true,
+      voicePath: ''
     });
 
-    this.recorderManager.start({
-      duration: 60000,
-      sampleRate: 44100,
-      numberOfChannels: 1,
-      encodeBitRate: 192000,
-      format: 'm4a'
-    });
-    
     // 震动反馈
-    wx.vibrateShort({ type: 'medium' });
+    wx.vibrateShort({ type: 'light' });
+
+    try {
+      this.recorderManager.start({
+        duration: 60000,
+        sampleRate: 44100,
+        numberOfChannels: 1,
+        encodeBitRate: 192000,
+        format: 'm4a'
+      });
+    } catch (err) {
+      console.error('Start record failed', err);
+      this.setData({ isRecording: false });
+    }
   },
 
   onStopRecord() {
     if (this.data.isAnswered || !this.data.isRecording) return;
-    this.recorderManager.stop();
-    wx.vibrateShort({ type: 'light' });
+    
+    // 震动反馈
+    wx.vibrateShort({ type: 'medium' });
+
+    try {
+      this.recorderManager.stop();
+    } catch (err) {
+      console.error('Stop record failed', err);
+      this.setData({ isRecording: false });
+    }
   },
 
   onPlayVoice() {

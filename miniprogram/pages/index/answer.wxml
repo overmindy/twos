@@ -78,10 +78,10 @@
         <!-- 极简语音录制展示 -->
         <block wx:if="{{currentMode === 'voice'}}">
           <view class="voice-section {{isAnswered ? 'answered' : ''}}">
-            <view class="voice-seal-wrapper">
+            <view class="voice-seal-wrapper" catchtouchmove="true">
               <!-- 巨大的麦克风印章 -->
               <view class="mic-seal {{isRecording ? 'pulse' : ''}} {{voicePath ? 'has-voice' : ''}}" 
-                    bindtap="{{!isAnswered ? 'onVoiceSealTap' : 'onPlayVoice'}}"
+                    bindtap="{{isAnswered || voicePath ? 'onPlayVoice' : ''}}"
                     longpress="{{!isAnswered ? 'onStartRecord' : ''}}"
                     bindtouchend="{{!isAnswered && isRecording ? 'onStopRecord' : ''}}">
                 <view class="mic-seal-inner">
@@ -89,7 +89,7 @@
                 </view>
               </view>
               <view class="voice-hint" wx:if="{{!isAnswered}}">
-                {{voicePath ? '点击播放，长按重录' : '点击或长按研磨声纹'}}
+                {{voicePath ? '点击播放，长按重录' : '长按研磨声纹'}}
               </view>
               <view class="voice-hint" wx:else>点击回响</view>
 
