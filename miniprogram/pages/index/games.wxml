@@ -34,16 +34,17 @@
       </view>
     </view>
 
-    <!-- 默契刮刮乐 (预留) -->
-    <view class="game-card locked">
+    <!-- 默契刮刮乐 -->
+    <view class="game-card" bindtap="goToScratch">
       <view class="card-inner">
         <view class="game-icon">
           <image class="game-icon-img" src="../../images/icons/quill.png" mode="aspectFit"></image>
         </view>
         <view class="game-info">
           <text class="game-name">默契刮刮乐</text>
-          <text class="game-desc">刮开纸上的秘密，同步心跳 (敬请期待)</text>
+          <text class="game-desc">刮开纸上的秘密，同步你们的心跳</text>
         </view>
+        <view class="arrow-seal">印</view>
       </view>
     </view>
   </view>

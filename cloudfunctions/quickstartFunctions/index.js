@@ -956,7 +956,7 @@ const handleGameReady = async (event) => {
       } else if (gameType === 'scratch') {
         updateData['gameState.data'] = {
           progress: 0,
-          points: []
+          scratchedPoints: []
         };
       } else if (gameType === 'draw_guess') {
         const { list } = await db.collection('game_words').aggregate().sample({ size: 1 }).end();
@@ -1035,6 +1035,30 @@ const closeGameRoom = async (event) => {
   }
 };
 
+// 更新刮刮乐进度和点位
+const updateScratchPoints = async (event) => {
+  const { roomId, points, progress } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!roomId || !points) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    const _ = db.command;
+    await db.collection('game_rooms').doc(roomId).update({
+      data: {
+        'gameState.data.scratchedPoints': _.push(points),
+        'gameState.data.progress': progress || 0,
+        updateTime: db.serverDate()
+      }
+    });
+    return { success: true };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
 // 云函数入口函数
 exports.main = async (event, context) => {
   switch (event.type) {
@@ -1090,5 +1114,7 @@ exports.main = async (event, context) => {
       return await handleGameReady(event);
     case "closeGameRoom":
       return await closeGameRoom(event);
+    case "updateScratchPoints":
+      return await updateScratchPoints(event);
   }
 };

@@ -9,7 +9,8 @@
     "pages/index/peace",
     "pages/index/games",
     "pages/index/coin-flip",
-    "pages/index/gobang"
+    "pages/index/gobang",
+    "pages/index/scratch"
   ],
   "window": {
     "backgroundColor": "#FDFCF8",

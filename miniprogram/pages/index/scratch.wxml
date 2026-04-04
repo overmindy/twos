@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="paper-title-container">
+    <text class="page-title">默契刮刮乐</text>
+    <view class="title-underline"></view>
+  </view>
+
+  <view class="game-area {{isFinished ? 'finished' : ''}}">
+    <!-- 底层：展示的内容（如一句话或一个图片） -->
+    <view class="scratch-content">
+      <view class="secret-message {{isHeartbeating ? 'heartbeat' : ''}}">
+        <image class="heart-icon" src="../../images/icons/hug.png" mode="aspectFit"></image>
+        <text class="message-text">心有灵犀，墨迹传情</text>
+        <text class="completion-text" wx:if="{{isFinished}}">默契度 100%</text>
+      </view>
+    </view>
+
+    <!-- 表层：刮刮乐 Canvas -->
+    <canvas 
+      type="2d" 
+      id="scratchCanvas" 
+      class="scratch-canvas"
+      bindtouchstart="touchStart"
+      bindtouchmove="touchMove"
+      bindtouchend="touchEnd"
+      wx:if="{{!isFinished}}"
+    ></canvas>
+  </view>
+
+  <view class="game-info">
+    <view class="progress-container">
+      <text class="progress-label">探索进度</text>
+      <view class="progress-bar">
+        <view class="progress-inner" style="width: {{progress}}%"></view>
+      </view>
+      <text class="progress-value">{{progress}}%</text>
+    </view>
+    
+    <view class="status-tips" wx:if="{{gameStatus === 'waiting'}}">
+      <text>等待另一半加入...</text>
+    </view>
+    <view class="status-tips" wx:elif="{{gameStatus === 'preparing'}}">
+      <button class="btn-ready {{isMyReady ? 'ready' : ''}}" bindtap="handleReady">
+        {{isMyReady ? '已就绪' : '准备开始'}}
+      </button>
+    </view>
+    <view class="status-tips" wx:elif="{{gameStatus === 'playing'}}">
+      <text>在纸上轻轻涂抹，同步你们的心跳</text>
+    </view>
+  </view>
+
+  <view class="footer-seal" bindtap="goBack">
+    <text class="seal-text">返回书卷</text>
+  </view>
+</view>

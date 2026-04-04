@@ -13,5 +13,11 @@ Page({
     wx.navigateTo({
       url: '/pages/index/gobang',
     });
+  },
+
+  goToScratch() {
+    wx.navigateTo({
+      url: '/pages/index/scratch',
+    });
   }
 });
