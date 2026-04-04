@@ -4,6 +4,16 @@ cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
 });
 
+// 初始化 AI 扩展 (如果环境支持)
+let ai = null;
+try {
+  if (cloud.extend && cloud.extend.AI) {
+    ai = cloud.extend.AI;
+  }
+} catch (e) {
+  console.error('AI extension initialization failed:', e);
+}
+
 const db = cloud.database();
 // 获取openid
 const getOpenId = async () => {
@@ -430,18 +440,43 @@ const rewriteText = async (event) => {
     return { success: false, errMsg: '文本内容为空' };
   }
 
-  // 这里可以接入真实的 LLM 接口，现在暂时返回一个模拟的“书面化”转换结果
-  const rewrites = {
-    "你又迟到了": "漫长的等待让这页纸显得有些孤独",
-    "你怎么不回消息": "指尖的墨迹已干，却迟迟未等来你的回音",
-    "我好累": "身后的尘嚣已远，只想在这一方墨色里枕着你的名字入眠",
-    "你在干嘛": "此时窗外的云朵，是否也正掠过你思索时的眼角"
-  };
+  // 检查 AI 扩展是否就绪
+  if (!ai) {
+    return { success: false, errMsg: 'AI 扩展未就绪，请确保环境中已开启 AI 能力' };
+  }
 
-  return { 
-    success: true, 
-    result: rewrites[text] || `(润色后) ${text}` 
-  };
+  try {
+    const res = await ai.chat.completions.create({
+      model: 'deepseek-r1-0528',
+      messages: [
+        {
+          role: 'system',
+          content: '你是一个温柔、理性且具有极高情商的语气实验员。你的任务是将用户输入的带有情绪、生硬或容易产生误会的文字，改写为温婉、平和、体面且保留原意的表达。请先在内部思考用户的真实动机，然后给出改写后的文字。'
+        },
+        {
+          role: 'user',
+          content: text
+        }
+      ],
+      stream: false,
+    });
+
+    if (res.choices && res.choices.length > 0) {
+      const choice = res.choices[0].message;
+      return {
+        success: true,
+        result: {
+          reasoning_content: choice.reasoning_content || '',
+          content: choice.content
+        }
+      };
+    } else {
+      return { success: false, errMsg: 'AI 未返回任何内容' };
+    }
+  } catch (e) {
+    console.error('AI rewrite failed:', e);
+    return { success: false, errMsg: e.message };
+  }
 };
 
 // 更新个人信息并同步到关系镜像
