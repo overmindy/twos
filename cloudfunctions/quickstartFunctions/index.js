@@ -838,6 +838,168 @@ const placeGobangPiece = async (event) => {
   }
 };
 
+// 处理房间准备逻辑
+const handleGameReady = async (event) => {
+  const { relationshipId, gameType } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!relationshipId || !gameType || !OPENID) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    // 1. 获取关系信息以确定 playerA 和 playerB
+    const { data: rel } = await db.collection('relationships').doc(relationshipId).get();
+    if (!rel) return { success: false, errMsg: '关系不存在' };
+
+    // 2. 查找活跃房间 (WAITING, PREPARING, PLAYING)
+    const _ = db.command;
+    let { data: rooms } = await db.collection('game_rooms').where({
+      relationshipId,
+      gameType,
+      status: _.in(['WAITING', 'PREPARING', 'PLAYING'])
+    }).get();
+
+    let room;
+    if (rooms.length === 0) {
+      // 创建新房间
+      const newRoom = {
+        relationshipId,
+        gameType,
+        status: 'WAITING',
+        players: {
+          playerA: { openid: rel.userA, ready: false, lastActive: db.serverDate() },
+          playerB: { openid: rel.userB, ready: false, lastActive: db.serverDate() }
+        },
+        gameState: {
+          currentTurn: rel.userA, // 默认 A 先手
+          data: {},
+          winner: null
+        },
+        createTime: db.serverDate(),
+        updateTime: db.serverDate()
+      };
+      const res = await db.collection('game_rooms').add({ data: newRoom });
+      room = { ...newRoom, _id: res._id };
+    } else {
+      room = rooms[0];
+    }
+
+    // 如果已经在进行中，直接返回
+    if (room.status === 'PLAYING') {
+      return { success: true, room };
+    }
+
+    // 3. 更新准备状态
+    const isPlayerA = room.players.playerA.openid === OPENID;
+    const isPlayerB = room.players.playerB.openid === OPENID;
+
+    if (!isPlayerA && !isPlayerB) {
+      return { success: false, errMsg: '你不是该房间的玩家' };
+    }
+
+    const updateData = {
+      updateTime: db.serverDate()
+    };
+
+    if (isPlayerA) {
+      updateData['players.playerA.ready'] = true;
+      room.players.playerA.ready = true;
+    } else if (isPlayerB) {
+      updateData['players.playerB.ready'] = true;
+      room.players.playerB.ready = true;
+    }
+
+    // 4. 检查是否双方都准备好了
+    if (room.players.playerA.ready && room.players.playerB.ready) {
+      updateData.status = 'PLAYING';
+      // 初始化特定游戏数据
+      if (gameType === 'gobang') {
+        updateData['gameState.data'] = {
+          board: Array(15).fill(null).map(() => Array(15).fill(null))
+        };
+      } else if (gameType === 'scratch') {
+        updateData['gameState.data'] = {
+          progress: 0,
+          points: []
+        };
+      } else if (gameType === 'draw_guess') {
+        const { list } = await db.collection('game_words').aggregate().sample({ size: 1 }).end();
+        updateData['gameState.data'] = {
+          word: list.length > 0 ? list[0].word : '苹果',
+          paths: []
+        };
+      }
+    } else {
+      updateData.status = 'PREPARING';
+    }
+
+    await db.collection('game_rooms').doc(room._id).update({ data: updateData });
+
+    // 重新获取最新的 room 数据返回给前端
+    const { data: updatedRoom } = await db.collection('game_rooms').doc(room._id).get();
+    return { success: true, room: updatedRoom };
+
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
+// 结束房间逻辑
+const closeGameRoom = async (event) => {
+  const { roomId, relationshipId, gameType, winner, duration } = event.data || {};
+  const { OPENID } = cloud.getWXContext();
+
+  if (!roomId && (!relationshipId || !gameType)) {
+    return { success: false, errMsg: '参数缺失' };
+  }
+
+  try {
+    let targetRoomId = roomId;
+    let room;
+
+    if (!targetRoomId) {
+      const { data: rooms } = await db.collection('game_rooms').where({
+        relationshipId,
+        gameType,
+        status: 'PLAYING'
+      }).get();
+      if (rooms.length === 0) return { success: false, errMsg: '未找到进行中的房间' };
+      room = rooms[0];
+      targetRoomId = room._id;
+    } else {
+      const { data: r } = await db.collection('game_rooms').doc(targetRoomId).get();
+      room = r;
+    }
+
+    if (!room) return { success: false, errMsg: '房间不存在' };
+
+    // 1. 更新房间状态为 FINISHED
+    await db.collection('game_rooms').doc(targetRoomId).update({
+      data: {
+        status: 'FINISHED',
+        'gameState.winner': winner || null,
+        updateTime: db.serverDate()
+      }
+    });
+
+    // 2. 写入游戏历史
+    await db.collection('game_history').add({
+      data: {
+        relationshipId: room.relationshipId,
+        gameType: room.gameType,
+        winner: winner || null,
+        duration: duration || 0,
+        endTime: db.serverDate()
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, errMsg: e.message };
+  }
+};
+
 // 云函数入口函数
 exports.main = async (event, context) => {
   switch (event.type) {
@@ -889,5 +1051,9 @@ exports.main = async (event, context) => {
       return await initGobang(event);
     case "placeGobangPiece":
       return await placeGobangPiece(event);
+    case "handleGameReady":
+      return await handleGameReady(event);
+    case "closeGameRoom":
+      return await closeGameRoom(event);
   }
 };
