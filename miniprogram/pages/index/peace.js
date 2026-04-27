@@ -16,8 +16,12 @@ Page({
     inputValue: '',
     lastMessageId: 'bottom-view',
     isLoading: false,
-    showDetailMap: {}
+    showDetailMap: {},
+    countdown: 15,
+    calmQuote: ''
   },
+
+  coolingTimer: null,
 
   onLoad(options) {
     const relationshipId = options.relationshipId || wx.getStorageSync('currentRelationshipId') || '';
@@ -29,17 +33,44 @@ Page({
     });
 
     wx.setNavigationBarTitle({
-      title: '语气实验室 · 止戈室'
+      title: '止戈室'
     });
+
+    this.startCooling();
 
     if (relationshipId) {
       this.initWatcher(relationshipId);
     }
   },
 
+  startCooling() {
+    const quotes = [
+      "言语如箭，射出难回。请再给爱一刻钟的时间。",
+      "在每一句生硬的话语背后，其实都藏着一颗渴望被理解的心。",
+      "止戈室里，没有对错，只有两个正在靠近的灵魂。",
+      "深深的话我们浅浅地说，长长的路我们慢慢地走。",
+      "此刻的沉默，是为了等一下能说出更温柔的话。"
+    ];
+    this.setData({
+      calmQuote: quotes[Math.floor(Math.random() * quotes.length)]
+    });
+
+    this.coolingTimer = setInterval(() => {
+      if (this.data.countdown > 0) {
+        this.setData({ countdown: this.data.countdown - 1 });
+        wx.vibrateShort({ type: 'light' });
+      } else {
+        clearInterval(this.coolingTimer);
+      }
+    }, 1000);
+  },
+
   onUnload() {
     if (this.watcher) {
       this.watcher.close();
+    }
+    if (this.coolingTimer) {
+      clearInterval(this.coolingTimer);
     }
   },
 
@@ -97,8 +128,14 @@ Page({
   },
 
   async onSendClick() {
-    const { inputValue, isLoading, relationshipId, openid, chatList } = this.data;
+    const { inputValue, isLoading, relationshipId, openid, chatList, countdown } = this.data;
+    
+    // 基础校验
+    if (countdown > 0) return; 
     if (!inputValue.trim() || isLoading || !relationshipId) return;
+
+    console.log('Sending message:', inputValue);
+    wx.vibrateShort({ type: 'light' });
 
     const userMessage = {
       id: 'temp-' + Date.now(),
@@ -181,6 +218,7 @@ Page({
             });
             
             if (fullContent.length % 5 === 0) {
+              wx.vibrateShort({ type: 'light' }); // Haptic feedback during typing
               this.scrollToBottom();
             }
           } catch (e) {
@@ -218,6 +256,7 @@ Page({
 
     } catch (e) {
       console.error('Streaming error:', e);
+      wx.vibrateLong();
       wx.showToast({
         title: '信鸽迷路了',
         icon: 'none'
@@ -262,16 +301,8 @@ Page({
   },
 
   scrollToBottom() {
-    const { chatList } = this.data;
-    if (chatList.length > 0) {
-      const lastId = chatList[chatList.length - 1].id;
-      this.setData({
-        lastMessageId: `msg-${lastId}`
-      });
-    } else {
-      this.setData({
-        lastMessageId: 'bottom-view'
-      });
-    }
+    this.setData({
+      lastMessageId: 'bottom-view'
+    });
   }
 });

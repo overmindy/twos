@@ -1,0 +1,199 @@
+/** square.wxss - Twos 2.0 Square Rebirth **/
+
+@import "../../../assets/fonts/serif-font.wxss";
+
+.square-container {
+  padding: 40rpx 32rpx;
+  background-color: #FDFCF8;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.square-header {
+  margin-bottom: 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1rpx solid #E0D8C0;
+  padding-bottom: 40rpx;
+}
+
+.header-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 56rpx;
+  color: #B22222;
+  font-weight: 700;
+  letter-spacing: 8rpx;
+}
+
+.header-subtitle {
+  font-size: 20rpx;
+  color: #8C8C8C;
+  margin-top: 10rpx;
+  text-transform: uppercase;
+  letter-spacing: 4rpx;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx;
+}
+
+.post-card {
+  background: #FFFFFF;
+  padding: 40rpx;
+  border: 1rpx solid rgba(178, 34, 34, 0.08);
+  box-shadow: 0 4rpx 30rpx rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: slideUp 0.6s ease-out both;
+}
+
+/* 纪念日霸屏样式 */
+.post-anniversary {
+  background: linear-gradient(135deg, #FFFDF5 0%, #FFFFFF 100%);
+  border: 2rpx solid #D4AF37; /* 金色 */
+  box-shadow: 0 10rpx 40rpx rgba(212, 175, 55, 0.15);
+  overflow: hidden;
+}
+
+.post-anniversary::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+  transform: rotate(30deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-150%) rotate(30deg); }
+  100% { transform: translateX(150%) rotate(30deg); }
+}
+
+.anniversary-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #D4AF37;
+  color: #FFF;
+  font-size: 18rpx;
+  padding: 8rpx 20rpx;
+  border-bottom-left-radius: 20rpx;
+  font-weight: 700;
+  z-index: 5;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.post-question {
+  font-family: "Noto Serif SC", serif;
+  font-size: 32rpx;
+  color: #2F2F2F;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 30rpx;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.post-answer {
+  margin-bottom: 40rpx;
+}
+
+.answer-text {
+  font-size: 28rpx;
+  color: #5C5C5C;
+  line-height: 1.8;
+  display: block;
+}
+
+.answer-media {
+  margin-top: 20rpx;
+}
+
+.media-img {
+  width: 100%;
+  height: 400rpx;
+  border-radius: 4rpx;
+  background: #F9F9F9;
+}
+
+.post-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30rpx;
+  border-top: 1rpx solid #F8F7F2;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.author-mood {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.author-name {
+  font-size: 22rpx;
+  color: #8C8C8C;
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 30rpx;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: #8C8C8C;
+  font-size: 24rpx;
+  transition: all 0.2s;
+}
+
+.heart-icon {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.action-btn.liked {
+  color: #B22222;
+  transform: scale(1.1);
+}
+
+.share-btn {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 48rpx !important;
+  height: 48rpx !important;
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-icon {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.4;
+}
+
+.empty-state {
+  padding: 100rpx 0;
+  text-align: center;
+  color: #8C8C8C;
+  font-size: 24rpx;
+  font-style: italic;
+}

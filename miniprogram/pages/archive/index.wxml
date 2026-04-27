@@ -1,82 +1,93 @@
-<!-- pages/archive/index.wxml -->
+<!-- pages/archive/index.wxml - Twos 2.0 Timeline Rebirth -->
 <view class="container archive-book">
   <view class="book-header">
-    <text class="book-title">时光·手札</text>
-    <view class="book-subtitle">Chronicle of Us</view>
+    <view class="header-top">
+      <text class="book-title">时光·长河</text>
+      <view class="search-entry" bindtap="onGoToSearch">🔍</view>
+    </view>
+    <view class="book-subtitle">The River of Us</view>
   </view>
 
   <view wx:if="{{loading}}" class="loading-state">
-    <text>翻开旧日的纸页...</text>
+    <text>溯流而上，寻找旧梦...</text>
+  </view>
+
+  <view class="mood-calendar-section" wx:if="{{!loading && historyList.length > 0}}">
+    <view class="section-title-mini">情绪轨迹</view>
+    <view class="calendar-grid">
+      <view 
+        wx:for="{{calendarBlocks}}" 
+        wx:key="date"
+        class="calendar-block mood-{{item.topMood || 'none'}}"
+        title="{{item.date}}"
+      ></view>
+    </view>
   </view>
 
   <view wx:elif="{{historyList.length === 0}}" class="empty-state">
-    <text>尚未留下笔墨...</text>
+    <text>长河尚浅，等待书写...</text>
   </view>
 
   <scroll-view scroll-y class="archive-scroll">
-    <block wx:for="{{historyList}}" wx:key="dateStr">
-      <view class="archive-item">
-        <view class="date-tag">{{item.dateStr}}</view>
-        <view class="qa-pair">
-          <view class="question-box">
-            <text class="question-mark">「</text>
-            <text class="question-content">{{item.questionContent}}</text>
-            <text class="question-mark">」</text>
-          </view>
+    <view class="timeline-container">
+      <block wx:for="{{groupedList}}" wx:key="month" wx:for-item="group">
+        <view class="month-header">{{group.month}}</view>
+        
+        <view class="timeline-node" wx:for="{{group.items}}" wx:key="dateStr">
+          <!-- 时间轴装饰 -->
+          <view class="node-dot"></view>
+          <text class="node-date">{{item.dateStr}}</text>
           
-          <view class="answers-container">
-            <!-- 我的回答 -->
-            <view class="answer-item my-answer">
-              <view class="answer-label">我：</view>
-              <view class="answer-content-wrapper {{item.privacyA === 'private' ? 'my-private' : ''}}">
-                <!-- 图片展示 -->
-                <view class="polaroid-mini" wx:if="{{item.typeA === 'image'}}" bindtap="onPreviewAnswerImage" data-url="{{item.mediaUrlA}}">
-                  <image class="polaroid-img-mini" src="{{item.mediaUrlA}}" mode="aspectFill"></image>
-                </view>
-                <!-- 语音展示 -->
-                <view class="voice-seal-mini" wx:if="{{item.typeA === 'voice'}}" bindtap="onPlayAnswerVoice" data-url="{{item.mediaUrlA}}">
-                  <view class="voice-seal-inner-mini">
-                    <image class="mic-icon-mini" src="../../images/icons/voice.png" mode="aspectFit"></image>
-                  </view>
-                </view>
-                <!-- 文字展示 -->
-                <view class="answer-text" wx:if="{{item.answerA && item.answerA !== '未作答'}}">{{item.answerA}}</view>
-                <view class="empty-hint" wx:if="{{item.answerA === '未作答' && !item.mediaUrlA}}">未作答</view>
-              </view>
+          <!-- 内容卡片 -->
+          <view class="node-card">
+            <view class="question-box">
+              <view class="question-content">{{item.questionContent}}</view>
             </view>
-
-            <!-- 对方回答 -->
-            <view class="answer-item partner-answer">
-              <view class="answer-label">TA：</view>
-              <view class="answer-content-wrapper {{item.privacyB === 'private' ? 'partner-private' : ''}}">
-                <block wx:if="{{item.privacyB !== 'private'}}">
-                  <!-- 图片展示 -->
-                  <view class="polaroid-mini" wx:if="{{item.typeB === 'image'}}" bindtap="onPreviewAnswerImage" data-url="{{item.mediaUrlB}}">
-                    <image class="polaroid-img-mini" src="{{item.mediaUrlB}}" mode="aspectFill"></image>
-                  </view>
-                  <!-- 语音展示 -->
-                  <view class="voice-seal-mini" wx:if="{{item.typeB === 'voice'}}" bindtap="onPlayAnswerVoice" data-url="{{item.mediaUrlB}}">
-                    <view class="voice-seal-inner-mini">
-                      <image class="mic-icon-mini" src="../../images/icons/voice.png" mode="aspectFit"></image>
+            
+            <view class="answers-container">
+              <!-- 我的回答 -->
+              <view class="answer-item">
+                <view class="user-avatar-mini">
+                  <image class="author-mood" src="../../images/icons/happy.png" mode="aspectFit" style="width: 100%; height: 100%;"></image>
+                </view>
+                <view class="answer-body">
+                  <view class="answer-content-wrapper {{item.privacyA === 'private' ? 'my-private' : ''}}">
+                    <text class="answer-text" wx:if="{{item.answerA && item.answerA !== '未作答'}}">{{item.answerA}}</text>
+                    <view class="polaroid-mini" wx:if="{{item.typeA === 'image'}}" bindtap="onPreviewAnswerImage" data-url="{{item.mediaUrlA}}">
+                      <image class="polaroid-img-mini" src="{{item.mediaUrlA}}" mode="aspectFill"></image>
                     </view>
                   </view>
-                  <!-- 文字展示 -->
-                  <view class="answer-text" wx:if="{{item.answerB && item.answerB !== '未作答'}}">{{item.answerB}}</view>
-                  <view class="empty-hint" wx:if="{{item.answerB === '未作答' && !item.mediaUrlB}}">未作答</view>
-                </block>
-                <block wx:else>
-                  <view class="private-hint">墨迹已隐...</view>
-                </block>
+                </view>
+              </view>
+
+              <!-- 对方回答 -->
+              <view class="answer-item">
+                <view class="user-avatar-mini">
+                  <image class="author-mood" src="../../images/icons/hug.png" mode="aspectFit" style="width: 100%; height: 100%; opacity: 0.6;"></image>
+                </view>
+                <view class="answer-body">
+                  <view class="answer-content-wrapper {{item.privacyB === 'private' ? 'partner-private' : ''}}">
+                    <block wx:if="{{item.privacyB !== 'private'}}">
+                      <text class="answer-text" wx:if="{{item.answerB && item.answerB !== '未作答'}}">{{item.answerB}}</text>
+                      <view class="polaroid-mini" wx:if="{{item.typeB === 'image'}}" bindtap="onPreviewAnswerImage" data-url="{{item.mediaUrlB}}">
+                        <image class="polaroid-img-mini" src="{{item.mediaUrlB}}" mode="aspectFill"></image>
+                      </view>
+                      <view class="empty-hint" wx:if="{{item.answerB === '未作答' && !item.mediaUrlB}}">TA 尚未落笔</view>
+                    </block>
+                    <block wx:else>
+                      <view class="private-hint">墨迹已隐...</view>
+                    </block>
+                  </view>
+                </view>
               </view>
             </view>
           </view>
         </view>
-        <view class="item-separator"></view>
-      </view>
-    </block>
+      </block>
+    </view>
+    
+    <view class="book-footer">
+      <text>由两只 (TWOS) 珍藏于此</text>
+    </view>
   </scroll-view>
-  
-  <view class="book-footer">
-    <text>由两只 (TWOS) 珍藏</text>
-  </view>
 </view>

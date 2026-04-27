@@ -31,27 +31,41 @@ App({
         fail: console.error
       });
 
-      // 获取并打印 OpenID，方便单人手动配置数据库测试
-      wx.cloud.callFunction({
+      // 静默登录与初始化串联
+      this.doSilentLogin();
+    }
+  },
+
+  async doSilentLogin() {
+    try {
+      // 1. 获取 OpenID
+      let openid = wx.getStorageSync('openid');
+      if (!openid) {
+        const { result } = await wx.cloud.callFunction({
+          name: 'quickstartFunctions',
+          data: { type: 'getOpenId' }
+        });
+        openid = result.openid;
+        wx.setStorageSync('openid', openid);
+      }
+
+      // 2. 确保用户底档存在
+      await wx.cloud.callFunction({
         name: 'quickstartFunctions',
-        data: { type: 'getOpenId' }
-      }).then(res => {
-        console.log('--- 你的 OpenID ---');
-        console.log(res.result.openid);
-        console.log('------------------');
-        wx.setStorageSync('openid', res.result.openid);
-        
-        // 初始化 TabBar 图标
-        this.initTabBarMood();
+        data: { type: 'ensureUserRecord' }
       });
 
-      // 初始化数据库集合 (仅在必要时，内部有 try-catch)
+      // 3. 初始化 TabBar 图标
+      this.initTabBarMood();
+
+      // 4. (可选) 自动初始化集合
       wx.cloud.callFunction({
         name: 'quickstartFunctions',
         data: { type: 'createCollection' }
-      }).then(res => {
-        console.log('Database initialization:', res.result);
       });
+
+    } catch (e) {
+      console.error('Silent login failed', e);
     }
   },
 

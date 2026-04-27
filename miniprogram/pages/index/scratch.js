@@ -7,10 +7,13 @@ Page({
     roomId: '',
     room: null,
     gameStatus: 'waiting', // waiting, preparing, playing, finished
+    prize: room.gameState.data ? room.gameState.data.prize : '',
     isMyReady: false,
     progress: 0,
     isFinished: false,
     isHeartbeating: false,
+    prizeInput: '',
+    prize: '',
     watcher: null
   },
 
@@ -69,6 +72,7 @@ Page({
     }
   },
 
+  onPrizeInput(e) { /* mock */ },
   onUnload() {
     if (this.data.watcher) {
       this.data.watcher.close();
@@ -96,7 +100,13 @@ Page({
     }
   },
 
+  
+  onPrizeInput(e) {
+    this.setData({ prizeInput: e.detail.value });
+  },
+
   async handleReady() {
+    wx.showLoading({ title: '封缄中...' });
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'quickstartFunctions',
@@ -104,11 +114,11 @@ Page({
           type: 'handleGameReady',
           data: {
             relationshipId: this.data.relationshipId,
-            gameType: 'scratch'
+            gameType: 'scratch',
+            prize: this.data.prizeInput
           }
         }
       });
-
       if (result.success) {
         this.setData({ roomId: result.room._id });
         if (!this.data.watcher) {
@@ -117,6 +127,8 @@ Page({
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      wx.hideLoading();
     }
   },
 
@@ -146,7 +158,9 @@ Page({
     const newState = {
       room,
       isMyReady,
-      gameStatus
+      gameStatus,
+      isHost: isPlayerA, // A 是房主，负责设置奖励
+      prize: room.gameState.data ? room.gameState.data.prize : this.data.prizeInput
     };
 
     if (room.status === 'PLAYING' && room.gameState.data) {
@@ -156,8 +170,6 @@ Page({
       if (scratchedPoints && scratchedPoints.length > this.lastScratchedCount) {
         const newPoints = scratchedPoints.slice(this.lastScratchedCount);
         newPoints.forEach(p => {
-          // 只绘制不是由自己产生且未处理的点（或者全量同步时过滤）
-          // 这里简化处理：全量检查哪些点还没画
           this.drawScratch(p.x, p.y, true);
         });
         this.lastScratchedCount = scratchedPoints.length;
@@ -204,22 +216,38 @@ Page({
     if (!this.ctx) return;
     const ctx = this.ctx;
     
-    // 绘制灰色覆盖层
+    // 绘制唯美的粉红渐变覆盖层
+    const gradient = ctx.createLinearGradient(0, 0, this.canvasWidth, this.canvasHeight);
+    gradient.addColorStop(0, '#FFE4E1'); // MistyRose
+    gradient.addColorStop(1, '#FFC0CB'); // Pink
+    
     ctx.save();
-    ctx.fillStyle = '#C0C0C0';
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     
-    // 增加一些纸张质感
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    for (let i = 0; i < 200; i++) {
+    // 增加一些纸张质感噪点
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    for (let i = 0; i < 300; i++) {
       ctx.fillRect(Math.random() * this.canvasWidth, Math.random() * this.canvasHeight, 2, 2);
     }
     
+    // 绘制中心的一颗大白心印记
+    ctx.beginPath();
+    const cx = this.canvasWidth / 2;
+    const cy = this.canvasHeight / 2;
+    ctx.moveTo(cx, cy - 20);
+    ctx.bezierCurveTo(cx, cy - 60, cx - 60, cy - 60, cx - 60, cy - 20);
+    ctx.bezierCurveTo(cx - 60, cy + 20, cx, cy + 50, cx, cy + 80);
+    ctx.bezierCurveTo(cx, cy + 50, cx + 60, cy + 20, cx + 60, cy - 20);
+    ctx.bezierCurveTo(cx + 60, cy - 60, cx, cy - 60, cx, cy - 20);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fill();
+
     // 绘制文字提示
-    ctx.fillStyle = '#8c8c8c';
-    ctx.font = '16px "Serif"';
+    ctx.fillStyle = '#B22222';
+    ctx.font = 'bold 20px "Serif"';
     ctx.textAlign = 'center';
-    ctx.fillText('拭去尘埃，见你所见', this.canvasWidth / 2, this.canvasHeight / 2);
+    ctx.fillText('用指尖拭去尘埃', cx, cy + 120);
     ctx.restore();
   },
 
@@ -242,6 +270,7 @@ Page({
   },
 
   scratchAt(x, y) {
+    if (this.pointsBuffer.length % 8 === 0) wx.vibrateShort({ type: "light" });
     this.drawScratch(x, y, false);
     
     // 记录点位用于同步

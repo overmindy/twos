@@ -1,203 +1,162 @@
+/** peace.wxss - Twos 2.0 Calm Space - Bug Fixed **/
+
+@import "../../assets/fonts/serif-font.wxss";
+
 .peace-room {
   padding: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
-  background-color: #FDFCF8;
+  background-color: #F0F4F2;
+  position: relative;
+  overflow: hidden;
 }
 
+/* 顶部：冷静标题 */
 .header {
   height: 100rpx;
-  padding: 0 40rpx;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1rpx solid #E0D8C0;
-  background-color: #FDFCF8;
+  justify-content: center;
+  background: rgba(240, 244, 242, 0.8);
+  backdrop-filter: blur(4rpx);
+  z-index: 100;
   flex-shrink: 0;
 }
 
 .header .title {
-  font-size: 34rpx;
-  font-weight: 500;
-  flex: 1;
+  font-family: "Noto Serif SC", serif;
+  font-size: 32rpx;
+  color: #4A5D5E;
+  letter-spacing: 4rpx;
+}
+
+/* 冷静蒙层 - 修复 pointer-events 阻挡问题 */
+.cooling-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(74, 93, 94, 0.98);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 1s ease-in-out;
+  pointer-events: all; /* 倒计时期间拦截所有点击 */
+}
+
+.cooling-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none; /* 消失后必须禁用，否则阻挡下层 */
+  visibility: hidden;
+}
+
+.calm-quote {
+  font-family: "Noto Serif SC", serif;
+  color: #FFFFFF;
+  font-size: 30rpx;
   text-align: center;
-  margin-left: 60rpx; /* balance the clear-btn on the right */
+  margin-bottom: 60rpx;
+  padding: 0 80rpx;
+  line-height: 1.8;
+  opacity: 0.8;
 }
 
-.clear-btn {
-  font-size: 38rpx;
-  padding: 10rpx;
-  cursor: pointer;
-  opacity: 0.7;
+.countdown-circle {
+  width: 100rpx;
+  height: 100rpx;
+  border: 2rpx solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #FFFFFF;
+  font-size: 36rpx;
 }
 
-.clear-btn:active {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
+/* 聊天历史区域 - 修复滚动失效 */
 .chat-history {
-  height: 85vh; /* Force it to take up most of the screen */
-  flex: 1;
-  padding: 20rpx 30rpx;
+  flex: 1; /* 撑满剩余空间 */
+  width: 100%;
   box-sizing: border-box;
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 .message-item {
   margin-bottom: 40rpx;
   display: flex;
   width: 100%;
-}
-
-.message-item.me {
-  justify-content: flex-end;
-}
-
-.message-item.ta {
-  justify-content: flex-start;
+  padding: 0 30rpx;
+  box-sizing: border-box;
 }
 
 .bubble {
-  max-width: 75%;
-  padding: 20rpx 30rpx;
-  border-radius: 12rpx;
-  position: relative;
-  box-shadow: 2rpx 4rpx 10rpx rgba(0,0,0,0.05);
-}
-
-.me .bubble {
-  background-color: #FFF9F9;
-  border: 1rpx solid #F5E8E8;
-  transform: rotate(0.5deg);
-}
-
-.ta .bubble {
-  background-color: #F8F9F0;
-  border: 1rpx solid #EAEBE0;
-  transform: rotate(-0.5deg);
-}
-
-.vermilion-ink .content {
-  color: #B22222;
-}
-
-.black-ink .content {
-  color: #2F2F2F;
-}
-
-.content {
-  font-size: 30rpx;
+  max-width: 80%;
+  padding: 20rpx 28rpx;
+  border-radius: 24rpx;
+  font-size: 28rpx;
   line-height: 1.6;
-  word-break: break-all;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
 }
 
-.timestamp {
-  font-size: 20rpx;
-  color: rgba(0,0,0,0.3);
-  margin-top: 10rpx;
-  text-align: right;
+.message-item.me { justify-content: flex-end; }
+.message-item.me .bubble {
+  background: #FFFFFF;
+  color: #2F2F2F;
+  border-bottom-right-radius: 4rpx;
 }
 
-/* AI 思考过程样式：轻量化、斜体、浅灰色 */
-.reasoning-text {
-  font-size: 24rpx;
-  color: #888888;
-  font-style: italic;
-  font-weight: 300;
-  margin-bottom: 16rpx;
-  padding-bottom: 12rpx;
-  border-bottom: 1rpx dashed rgba(0,0,0,0.05);
-  animation: fadeIn 0.8s ease;
-  line-height: 1.4;
+.message-item.ta { justify-content: flex-start; }
+.message-item.ta .bubble {
+  background: #DEEAE7;
+  color: #4A5D5E;
+  border-bottom-left-radius: 4rpx;
 }
 
-.reasoning-content {
-  opacity: 0.85;
-}
-
-/* 呼吸动效 */
-.loading-status {
-  margin-top: 10rpx;
+/* 输入区域 - 确保层级在装饰背景之上 */
+.input-area {
+  padding: 24rpx 30rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
   display: flex;
   align-items: center;
-}
-
-.loading-breathing {
-  font-size: 20rpx;
-  color: #B22222;
-  opacity: 0.6;
-  animation: breathing 2s infinite ease-in-out;
-}
-
-@keyframes breathing {
-  0% { opacity: 0.2; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.2; }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10rpx); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 消息气泡渐入效果 */
-.message-item {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(20rpx); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 详情展开时的背景微调 */
-.bubble.show-detail {
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
-}
-
-.input-area {
-  padding: 20rpx 30rpx calc(20rpx + env(safe-area-inset-bottom));
-  background-color: #FDFCF8;
-  border-top: 1rpx solid #E0D8C0;
-  display: flex;
-  align-items: flex-end;
   gap: 20rpx;
-  flex-shrink: 0;
+  border-top: 1rpx solid #DEEAE7;
+  z-index: 500;
+  position: relative;
 }
 
 .chat-input {
   flex: 1;
-  background: #F8F7F2;
-  border: 1rpx solid #E0D8C0;
-  border-radius: 8rpx;
-  padding: 16rpx 24rpx;
+  background: #F8F9FA;
+  border-radius: 40rpx;
+  padding: 16rpx 30rpx;
   font-size: 28rpx;
-  min-height: 40rpx;
-  max-height: 200rpx;
+  height: 80rpx;
 }
 
-.send-btn {
-  background-color: #B22222;
-  color: white;
-  font-size: 28rpx;
-  padding: 12rpx 30rpx;
-  border-radius: 8rpx;
-  margin: 0;
-  line-height: 1.5;
-  min-width: 120rpx;
+.send-btn-cool {
+  width: 120rpx;
+  height: 70rpx;
+  background: #4A5D5E;
+  color: #FFF;
+  border-radius: 35rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 26rpx;
+  z-index: 501;
 }
 
-.paper-texture {
-  position: fixed;
-  top: 0;
+/* 背景波纹动效 - 降低层级，防止阻挡点击 */
+.wave-bg {
+  position: absolute;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 150rpx;
+  background: linear-gradient(to top, rgba(74, 93, 94, 0.03), transparent);
+  z-index: 1;
   pointer-events: none;
-  background-image: url('https://636c-cloud1-0g4v7j7b6f6f6f6f-1305658093.tcb.qcloud.la/paper_noise.png?sign=...&t=...'); /* Placeholder or fallback to radial gradient in app.wxss */
-  opacity: 0.03;
-  z-index: 100;
 }

@@ -51,9 +51,12 @@
           <view class="mode-item {{currentMode === 'text' ? 'active' : ''}}" bindtap="switchMode" data-mode="text">
             <image class="mode-icon-img" src="../../images/icons/quill.png" mode="aspectFit"></image>
           </view>
+          <!-- 暂时隐藏语音模式，因缺少录音接口权限 -->
+          <!-- 
           <view class="mode-item {{currentMode === 'voice' ? 'active' : ''}}" bindtap="switchMode" data-mode="voice">
             <image class="mode-icon-img" src="../../images/icons/voice.png" mode="aspectFit"></image>
-          </view>
+          </view> 
+          -->
           <view class="mode-item {{currentMode === 'image' ? 'active' : ''}}" bindtap="switchMode" data-mode="image">
             <image class="mode-icon-img" src="../../images/icons/camera.png" mode="aspectFit"></image>
           </view>
@@ -75,11 +78,11 @@
           <view class="char-counter" wx:if="{{!isAnswered}}">{{content.length}}/200</view>
         </block>
 
-        <!-- 极简语音录制展示 -->
+        <!-- 极简语音录制展示 (暂时隐藏，因缺少录音接口权限) -->
+        <!-- 
         <block wx:if="{{currentMode === 'voice'}}">
           <view class="voice-section {{isAnswered ? 'answered' : ''}}">
             <view class="voice-seal-wrapper" catchtouchmove="true">
-              <!-- 巨大的麦克风印章 -->
               <view class="mic-seal {{isRecording ? 'pulse' : ''}} {{voicePath ? 'has-voice' : ''}}" 
                     bindtap="onPlayVoice"
                     bindlongpress="onStartRecord"
@@ -93,7 +96,6 @@
               </view>
               <view class="voice-hint" wx:else>点击回响</view>
 
-              <!-- 已录制时的操作 -->
               <view class="voice-actions" wx:if="{{voicePath && !isAnswered && !isRecording}}">
                 <view class="voice-action-mini" bindtap="onDeleteVoice">
                   <text>抹除</text>
@@ -111,6 +113,7 @@
             ></textarea>
           </view>
         </block>
+        -->
 
         <!-- 图片上传展示 -->
         <block wx:if="{{currentMode === 'image'}}">

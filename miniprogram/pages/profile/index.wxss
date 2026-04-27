@@ -271,3 +271,151 @@
   pointer-events: none;
   z-index: 999;
 }
+
+.stats-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40rpx 0;
+  padding: 30rpx;
+  background: #F9F8F2;
+  border: 1rpx solid #E0D8C0;
+  border-radius: 12rpx;
+  box-shadow: inset 0 2rpx 8rpx rgba(0,0,0,0.02);
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.stat-value {
+  font-size: 44rpx;
+  font-family: serif;
+  color: #B22222;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+.stat-label {
+  font-size: 24rpx;
+  color: #8C8C8C;
+  letter-spacing: 2rpx;
+}
+/* 灵魂动物选择器 */
+.animal-picker-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  backdrop-filter: blur(4rpx);
+}
+
+.animal-picker-content {
+  width: 100%;
+  background: #FFFFFF;
+  border-top-left-radius: 40rpx;
+  border-top-right-radius: 40rpx;
+  padding: 40rpx;
+  box-sizing: border-box;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.picker-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.picker-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 36rpx;
+  color: #2F2F2F;
+  letter-spacing: 4rpx;
+}
+
+.picker-divider {
+  width: 60rpx;
+  height: 4rpx;
+  background: #B22222;
+  margin: 12rpx auto 0;
+}
+
+.animal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.animal-item {
+  display: flex;
+  align-items: center;
+  gap: 30rpx;
+  padding: 30rpx;
+  background: #FDFCF8;
+  border: 1rpx solid #F0EAD6;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.animal-item:active {
+  background: #FAF9F6;
+  transform: scale(0.98);
+  border-color: #E0D8C0;
+}
+
+.animal-icon {
+  width: 100rpx;
+  height: 100rpx;
+  background: #FFF;
+  border-radius: 50%;
+  padding: 10rpx;
+}
+
+.animal-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.animal-name {
+  font-family: "Noto Serif SC", serif;
+  font-size: 30rpx;
+  color: #2F2F2F;
+  font-weight: 600;
+}
+
+.animal-label {
+  font-size: 22rpx;
+  color: #8C8C8C;
+  margin-top: 4rpx;
+}
+
+/* 勋章样式 */
+.badge-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+  justify-content: center;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  background: #FFFFFF;
+  padding: 10rpx 20rpx;
+  border-radius: 40rpx;
+  border: 1rpx solid #E0D8C0;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.02);
+}
+
+.badge-icon { font-size: 24rpx; }
+.badge-name { font-size: 20rpx; color: #B22222; font-family: "Noto Serif SC", serif; }

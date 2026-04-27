@@ -1,0 +1,29 @@
+<!-- miniprogram/pages/archive/album/album.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="title">私密相册</text>
+    <text class="subtitle">记录那些不曾言说的瞬间</text>
+  </view>
+
+  <scroll-view scroll-y class="album-scroll" refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
+    <view class="photo-grid">
+      <view class="photo-item {{index % 5 === 0 ? 'large' : ''}}" wx:for="{{photos}}" wx:key="_id" bindtap="onPreview" bindlongpress="onLongPress" data-index="{{index}}">
+        <image class="photo-img" src="{{item.fileID}}" mode="aspectFill" lazy-load></image>
+        <view class="photo-desc" wx:if="{{item.description}}">{{item.description}}</view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{photos.length === 0 && !loading}}">
+      <image class="empty-icon" src="../../../images/icons/quill.png" mode="aspectFit"></image>
+      <text class="empty-text">尚无墨迹，点击下方上传第一张记忆</text>
+    </view>
+  </scroll-view>
+
+  <view class="upload-btn" bindtap="onUpload">
+    <text class="plus">+</text>
+  </view>
+
+  <view class="footer-seal" bindtap="goBack">
+    <text class="seal-text">返回手札</text>
+  </view>
+</view>

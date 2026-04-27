@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/index/square/square",
     "pages/bind/bind",
     "pages/archive/index",
     "pages/profile/index",
@@ -11,7 +12,14 @@
     "pages/index/coin-flip",
     "pages/index/gobang",
     "pages/index/scratch",
-    "pages/index/draw-guess"
+    "pages/index/draw-guess",
+    "pages/index/truth-dare",
+    "pages/index/bucket-list/bucket-list",
+    "pages/archive/album/album",
+    "pages/archive/capsule/capsule",
+    "pages/archive/search/search",
+    "pages/index/leaderboard/leaderboard",
+    "pages/profile/location"
   ],
   "window": {
     "backgroundColor": "#FDFCF8",

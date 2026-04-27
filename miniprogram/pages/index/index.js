@@ -1,5 +1,7 @@
 // index.js
 import { TreeDrawer } from '../../utils/tree-drawer';
+import { PosterDrawer } from '../../utils/poster-drawer';
+import { FXEngine } from '../../utils/fx-engine';
 const db = wx.cloud.database();
 
 Page({
@@ -14,7 +16,12 @@ Page({
     relWatcher: null,
     inkCanvasContext: null,
     inkCanvasNode: null,
+    posterCanvasNode: null,
     showMoodModal: false,
+    showCustomQuestionModal: false,
+    customQuestionInput: '',
+    showPokeAnim: false,
+    lastPokeTime: 0,
     moodList: [
       {icon: 'work', label: '工作中'},
       {icon: 'tired', label: '累了'},
@@ -31,13 +38,89 @@ Page({
       myMoodLabel: '平常',
       myNickname: '我'
     },
-    todayChineseDate: ''
+    todayChineseDate: '',
+    dynamicBg: '#FDFCF8',
+    latestSquarePost: null,
+    isMatching: false,
+    showAIModal: false,
+    aiAnalysis: '',
+    theme: 'light',
+    hideGuide: wx.getStorageSync('hideWidgetGuide') || false,
+    pageLoading: true,
+    showTaskModal: false,
+    todayTask: null
+  },
+
+  onShowTask() {
+    this.setData({ showTaskModal: true });
+    if (!this.data.todayTask) {
+      wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'getDailyTask' }
+      }).then(res => {
+        if (res.result && res.result.success) {
+          this.setData({ todayTask: res.result.task });
+        }
+      });
+    }
+  },
+
+  onHideTask() {
+    this.setData({ showTaskModal: false });
+  },
+
+  onCloseGuide() {
+    this.setData({ hideGuide: true });
+    wx.setStorageSync('hideWidgetGuide', true);
   },
 
   treeDrawer: null,
+  posterDrawer: null,
+  fxEngine: null,
   inkSmudges: [], // 存储活跃的墨迹动画
   resonanceTimer: null,
   locationTimer: null,
+  matchTimer: null,
+
+  initTheme() {
+    const hour = new Date().getHours();
+    // 20:00 - 06:00 自动进入深色模式
+    if (hour >= 20 || hour < 6) {
+      this.setData({ theme: 'dark' });
+    } else {
+      this.setData({ theme: 'light' });
+    }
+  },
+
+  onTapAssistant() {
+    if (!this.data.relationship) {
+      wx.showToast({ title: '羁绊未深，心语难觅', icon: 'none' });
+      return;
+    }
+
+    this.setData({ showAIModal: true, aiAnalysis: '' });
+
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'analyzeRelationship',
+        data: { relationshipId: this.data.relationship._id }
+      }
+    }).then(res => {
+      if (res.result && res.result.success) {
+        this.setData({ aiAnalysis: res.result.analysis });
+      } else {
+        this.setData({ aiAnalysis: '助理正在小憩，等下再来吧。' });
+      }
+    }).catch(err => {
+      console.error(err);
+      this.setData({ aiAnalysis: '信件在风中飘散了...' });
+    });
+  },
+
+  onCloseAIModal() {
+    this.setData({ showAIModal: false });
+  },
 
   onLoad() {
     const app = getApp();
@@ -47,7 +130,13 @@ Page({
     });
     this.initBondingTree();
     this.initInkCanvas();
+    this.initPosterCanvas();
+    this.initFXCanvas();
     this.fetchRelationship();
+    this.initTheme();
+    
+    // 检查用户是否处于匹配状态
+    this.checkSearchStatus();
     
     // 确保用户底档存在
     wx.cloud.callFunction({
@@ -62,6 +151,68 @@ Page({
     }, 1000 * 60 * 5); // 每 5 分钟更新一次
   },
 
+  async checkSearchStatus() {
+    try {
+      const { result } = await wx.cloud.callFunction({ name: 'quickstartFunctions', data: { type: 'getUserInfo' } });
+      if (result && result.userInfo && result.userInfo.isSearching) {
+        this.startMatchPolling();
+      }
+    } catch (e) { console.error(e); }
+  },
+
+  async onStartMatch() {
+    wx.showLoading({ title: '封缄信笺...' });
+    try {
+      await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'toggleSearching', data: { status: true } }
+      });
+      wx.hideLoading();
+      this.startMatchPolling();
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: '投掷失败', icon: 'none' });
+    }
+  },
+
+  startMatchPolling() {
+    this.setData({ isMatching: true });
+    this.matchTimer = setInterval(async () => {
+      try {
+        const { result } = await wx.cloud.callFunction({ name: 'quickstartFunctions', data: { type: 'findMatch' } });
+        if (result && result.matched) {
+          clearInterval(this.matchTimer);
+          this.setData({ isMatching: false });
+          wx.vibrateLong();
+          
+          // 触发成功特效
+          if (this.fxEngine) this.fxEngine.spawnConfetti();
+
+          wx.showModal({
+            title: '羁绊达成',
+            content: '信笺已被拾起，新的旅程即将开始。',
+            showCancel: false,
+            success: () => {
+              this.fetchRelationship(); // 重新加载关系
+            }
+          });
+        }
+      } catch (e) { console.error('Match poll failed', e); }
+    }, 5000); // 每 5 秒轮询一次
+  },
+
+  async onCancelMatch() {
+    if (this.matchTimer) clearInterval(this.matchTimer);
+    this.setData({ isMatching: false });
+    try {
+      await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'toggleSearching', data: { status: false } }
+      });
+      wx.showToast({ title: '已收回信笺', icon: 'none' });
+    } catch (e) { console.error(e); }
+  },
+
   getChineseDate() {
     const months = ['壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖', '拾', '拾壹', '拾贰'];
     const days = ['壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖', '拾', '拾壹', '拾贰', '拾叁', '拾肆', '拾伍', '拾陆', '拾柒', '拾捌', '拾玖', '贰拾', '贰拾壹', '贰拾贰', '贰拾叁', '贰拾肆', '贰拾伍', '贰拾陆', '贰拾柒', '贰拾捌', '贰拾玖', '叁拾', '叁拾壹'];
@@ -70,6 +221,7 @@ Page({
   },
 
   onShow() {
+    this.fetchLatestSquarePost();
     if (!this.data.relationship) {
       this.fetchRelationship();
     } else {
@@ -80,8 +232,38 @@ Page({
 
     // 每次显示时尝试重绘，以防能量值有变
     if (this.treeDrawer && this.data.relationship) {
-      this.treeDrawer.draw(this.data.relationship.energy || 0);
+      this.treeDrawer.previewGrowth(this.data.relationship.energy || 0, 2000, this.getTreeOptions());
     }
+  },
+
+  fetchLatestSquarePost() {
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getSquarePosts' }
+    }).then(res => {
+      if (res.result && res.result.success && res.result.posts && res.result.posts.length > 0) {
+        this.setData({ latestSquarePost: res.result.posts[0] });
+      }
+    }).catch(err => console.error('Fetch square post failed', err));
+  },
+
+  onGoToSquare() {
+    wx.navigateTo({
+      url: '/pages/index/square/square'
+    });
+  },
+
+  onTapPet() {
+    if (!this.data.relationship) return;
+    const energy = this.data.relationship.energy || 0;
+    let statusText = energy > 100 ? '羁绊已发芽，正在茁壮成长。' : '羁绊之种正在沉睡，需要更多互动来唤醒。';
+    wx.showModal({
+      title: '羁绊之种',
+      content: `${statusText}\n当前能量：${energy}`,
+      showCancel: false,
+      confirmText: '知晓',
+      confirmColor: '#B22222'
+    });
   },
 
   onUnload() {
@@ -94,11 +276,73 @@ Page({
     if (this.locationTimer) {
       clearInterval(this.locationTimer);
     }
+    if (this.matchTimer) {
+      clearInterval(this.matchTimer);
+    }
+  },
+
+  initPosterCanvas() {
+    const query = wx.createSelectorQuery();
+    query.select('#posterCanvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        if (!res[0] || !res[0].node) return;
+        const canvas = res[0].node;
+        const ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 900;
+        this.posterDrawer = new PosterDrawer(canvas, ctx, 600, 900);
+      });
+  },
+
+  initFXCanvas() {
+    const query = wx.createSelectorQuery();
+    query.select('#fxCanvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        if (!res[0] || !res[0].node) return;
+        const canvas = res[0].node;
+        const ctx = canvas.getContext('2d');
+        const { windowWidth, windowHeight, pixelRatio: dpr } = wx.getWindowInfo();
+        canvas.width = windowWidth * dpr;
+        canvas.height = windowHeight * dpr;
+        ctx.scale(dpr, dpr);
+        this.fxEngine = new FXEngine(canvas, ctx, windowWidth, windowHeight);
+      });
+  },
+
+  async onShareStreak() {
+    if (!this.posterDrawer || !this.data.relationship) return;
+    
+    wx.showLoading({ title: '绘就画报...' });
+    
+    const data = {
+      meNickname: this.data.weatherInfo.myNickname,
+      partnerNickname: this.data.weatherInfo.partnerNickname,
+      streakCount: this.data.relationship.streakCount || 1
+    };
+
+    try {
+      const tempFilePath = await this.posterDrawer.draw(data);
+      wx.hideLoading();
+      if (tempFilePath) {
+        wx.previewImage({
+          urls: [tempFilePath],
+          current: tempFilePath
+        });
+      }
+    } catch (e) {
+      wx.hideLoading();
+      console.error(e);
+      wx.showToast({ title: '画报生成失败', icon: 'none' });
+    }
   },
 
   /**
    * 定时同步位置与状态
    */
+
+
   syncLocation() {
     if (!this.data.relationship) return;
 
@@ -106,22 +350,28 @@ Page({
       type: 'gcj02',
       success: (res) => {
         const { latitude, longitude } = res;
-        const myOpenid = wx.getStorageSync('openid');
-        if (!myOpenid) return;
+        
+        console.log('Got lat/lng for sync:', latitude, longitude);
 
-        const isUserA = this.data.relationship.userA === myOpenid;
-        const updateData = {};
-        if (isUserA) {
-          updateData.userALocation = { latitude, longitude, updateTime: db.serverDate() };
-        } else {
-          updateData.userBLocation = { latitude, longitude, updateTime: db.serverDate() };
-        }
-        db.collection('relationships').doc(this.data.relationship._id).update({
-          data: updateData
-        }).then(() => {
-          console.log('Location updated');
+        // 使用与“心情”更新完全一致的机制：updateUserInfo
+        wx.cloud.callFunction({
+          name: 'quickstartFunctions',
+          data: {
+            type: 'updateUserInfo',
+            data: {
+              userInfo: {
+                location: { latitude, longitude }
+              }
+            }
+          }
+        }).then(res => {
+          if (res.result && res.result.success) {
+            console.log('Location synced to Users & Relationship successfully');
+          } else {
+            console.error('Location sync failed via updateUserInfo:', res.result);
+          }
         }).catch(err => {
-          console.error('Location update failed', err);
+          console.error('Location sync call failed:', err);
         });
       },
       fail: (err) => {
@@ -129,6 +379,8 @@ Page({
       }
     });
   },
+
+
 
   /**
    * 计算 Haversine 距离
@@ -165,6 +417,16 @@ Page({
     // 健壮性：优先从镜像字段取，兼容旧字段，最后默认
     const partnerMoodIcon = partnerInfo.mood || (isUserA ? rel.userBMood : rel.userAMood) || 'happy';
     const myMoodIcon = myInfo.mood || (isUserA ? rel.userAMood : rel.userBMood) || 'happy';
+
+    // Twos 2.0: 心情驱动的背景色温 (Artistic Muted Tones)
+    const moodColors = {
+      'happy': '#FFF9F0', // 暖阳黄
+      'work': '#F0F4F8',  // 静谧蓝灰
+      'tired': '#F5F5F7', // 疏影灰
+      'hug': '#FFF5F5',   // 柔粉
+      'default': '#FDFCF8' // 象牙白
+    };
+    const dynamicBg = moodColors[partnerMoodIcon] || moodColors['default'];
     
     // 增加昵称同步
     const partnerNickname = partnerInfo.nickname || (isUserA ? (rel.userBNickname || 'Ta') : (rel.userANickname || 'Ta'));
@@ -196,14 +458,52 @@ Page({
       'weatherInfo.partnerNickname': partnerNickname,
       'weatherInfo.myMoodIcon': myMoodIcon,
       'weatherInfo.myMoodLabel': myMoodLabel,
-      'weatherInfo.myNickname': myNickname
+      'weatherInfo.myNickname': myNickname,
+      'dynamicBg': dynamicBg
     });
   },
 
   /**
    * 点击气象站：弹出心情选择
    */
+  
+  onPokePartner() {
+    if (!this.data.relationship) return;
+    wx.vibrateShort({ type: 'medium' });
+    wx.showToast({ title: '已戳~', icon: 'none' });
+    
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'pokePartner',
+        data: { relationshipId: this.data.relationship._id }
+      }
+    });
+  },
+
+  
+  checkIncomingPoke(newRel) {
+    if (!newRel.lastPoke || !newRel.lastPoke.time) return;
+    const pokeTime = new Date(newRel.lastPoke.time).getTime();
+    if (pokeTime > this.data.lastPokeTime && newRel.lastPoke.to === wx.getStorageSync('openid')) {
+      this.setData({ lastPokeTime: pokeTime });
+      this.showPokeAnimation();
+    }
+  },
+
+  showPokeAnimation() {
+    this.setData({ showPokeAnim: true });
+    wx.vibrateLong();
+    setTimeout(() => {
+      wx.vibrateShort({ type: 'heavy' });
+    }, 200);
+    setTimeout(() => {
+      this.setData({ showPokeAnim: false });
+    }, 2500);
+  },
+
   onTapWeatherStation() {
+    wx.vibrateShort({ type: 'light' });
     this.setData({
       showMoodModal: true
     });
@@ -230,6 +530,7 @@ Page({
    */
   selectMood(e) {
     const moodItem = e.currentTarget.dataset.mood;
+    wx.vibrateShort({ type: 'medium' });
     const myOpenid = wx.getStorageSync('openid');
     if (!myOpenid || !this.data.relationship) return;
 
@@ -276,6 +577,7 @@ Page({
       data: { type: 'getActiveRelationship' }
     }).then(res => {
       wx.hideLoading();
+      this.setData({ pageLoading: false });
       if (res && res.result && res.result.success && res.result.relationship) {
         const rel = res.result.relationship;
         const openid = wx.getStorageSync('openid');
@@ -315,6 +617,7 @@ Page({
       }
     }).catch(err => {
       wx.hideLoading();
+      this.setData({ pageLoading: false });
       wx.showToast({ title: '书卷难以翻开', icon: 'none' });
       console.error('Fetch relationship failed', err);
     });
@@ -421,9 +724,16 @@ Page({
         
         // 如果已经有 relationship 数据，立即绘制
         if (this.data.relationship) {
-          this.treeDrawer.draw(this.data.relationship.energy || 0);
+          this.treeDrawer.previewGrowth(this.data.relationship.energy || 0, 2000, this.getTreeOptions());
         }
       });
+  },
+
+  getTreeOptions() {
+    return {
+      streakCount: (this.data.relationship && this.data.relationship.streakCount) || 0,
+      theme: this.data.theme || 'light'
+    };
   },
 
   /**
@@ -439,15 +749,15 @@ Page({
     });
 
     // 模拟未来能量增加后的效果，比如 +100 能量
-    const currentEnergy = this.data.relationship.energy || 0;
+    const currentEnergy = (this.data.relationship && this.data.relationship.energy) || 0;
     const previewTarget = currentEnergy + 100;
     
-    this.treeDrawer.previewGrowth(previewTarget, 3000);
+    this.treeDrawer.previewGrowth(previewTarget, 3000, this.getTreeOptions());
     
     // 3.5秒后自动恢复当前状态
     setTimeout(() => {
       if (this.treeDrawer) {
-        this.treeDrawer.draw(this.data.relationship.energy || 0);
+        this.treeDrawer.previewGrowth(currentEnergy, 2000, this.getTreeOptions());
       }
     }, 3500);
   },
@@ -472,10 +782,41 @@ Page({
     });
   },
 
+  onGoToBucketList() {
+    if (!this.data.relationship) {
+      wx.showToast({ title: '羁绊达成后开启', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/index/bucket-list/bucket-list'
+    });
+  },
+
+  onGoToAlbum() {
+    if (!this.data.relationship) {
+      wx.showToast({ title: '羁绊达成后开启', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/archive/album/album'
+    });
+  },
+
+  onGoToCapsule() {
+    if (!this.data.relationship) {
+      wx.showToast({ title: '羁绊达成后开启', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/archive/capsule/capsule'
+    });
+  },
+
   /**
    * 点击纸片：触发展开动画或进入答题页
    */
   onTapPaper() {
+    wx.vibrateShort({ type: 'light' });
     // 如果我还没回答，显示操作菜单
     if (!this.data.myAnswer) {
       const relationshipId = this.data.relationship ? this.data.relationship._id : '';
@@ -545,17 +886,27 @@ Page({
   /**
    * 显示自定义题目输入框
    */
+
   showCustomQuestionInput() {
-    wx.showModal({
-      title: '我想出题',
-      placeholderText: '输入你想对 ta 提出的问题...',
-      editable: true,
-      success: (res) => {
-        if (res.confirm && res.content) {
-          this.setCustomQuestion(res.content);
-        }
-      }
-    });
+    this.setData({ showCustomQuestionModal: true, customQuestionInput: '' });
+  },
+
+  onCustomQuestionInput(e) {
+    this.setData({ customQuestionInput: e.detail.value });
+  },
+
+  onCloseCustomQuestionModal() {
+    this.setData({ showCustomQuestionModal: false });
+  },
+
+  submitCustomQuestion() {
+    const content = this.data.customQuestionInput.trim();
+    if (!content) {
+      wx.showToast({ title: '总得留点墨迹吧', icon: 'none' });
+      return;
+    }
+    this.setData({ showCustomQuestionModal: false });
+    this.setCustomQuestion(content);
   },
 
   /**
@@ -617,6 +968,7 @@ Page({
       onChange: (snapshot) => {
         if (snapshot.docs.length > 0) {
           const newRel = snapshot.docs[0];
+          this.checkIncomingPoke(newRel);
           const oldRel = this.data.relationship;
           
           // 检查 lastResonance 是否更新（且不是自己触发的）
@@ -670,6 +1022,21 @@ Page({
    * 开始共振：按下
    */
   onResonanceStart(e) {
+    // 隐藏彩蛋逻辑
+    const now = Date.now();
+    if (now - (this.eggLastClickTime || 0) < 500) {
+      this.eggClickCount = (this.eggClickCount || 0) + 1;
+    } else {
+      this.eggClickCount = 1;
+    }
+    this.eggLastClickTime = now;
+
+    if (this.eggClickCount >= 10) {
+      if (this.fxEngine) this.fxEngine.spawnConfetti();
+      wx.vibrateLong();
+      this.eggClickCount = 0;
+    }
+
     if (!this.data.relationship) {
       wx.showToast({
         title: '正在连接手札...',

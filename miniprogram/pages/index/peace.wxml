@@ -1,14 +1,24 @@
+<!-- pages/index/peace.wxml - Twos 2.0 Calm Space - Bug Fixed -->
 <view class="container peace-room">
-  <view class="header serif-text ink-black">
-    <view class="title">语气实验室 · 止戈室</view>
-    <view class="clear-btn" bindtap="onClearHistory" title="焚化记录">🔥</view>
+  <!-- 冷静蒙层：进入时强制降温 -->
+  <view class="cooling-overlay {{countdown <= 0 ? 'fade-out' : ''}}">
+    <view class="calm-quote">
+      <text>{{calmQuote || '于此案前，且慢动笔。\n让情绪随流而去，只留温柔在心。'}}</text>
+    </view>
+    <view class="countdown-circle" wx:if="{{countdown > 0}}">{{countdown}}</view>
+  </view>
+
+  <view class="header">
+    <view class="title">止戈室</view>
   </view>
   
   <scroll-view 
     class="chat-history" 
-    scroll-y 
+    scroll-y="{{true}}"
     scroll-into-view="{{lastMessageId}}"
-    scroll-with-animation
+    scroll-with-animation="{{true}}"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}"
   >
     <view 
       wx:for="{{chatList}}" 
@@ -16,39 +26,28 @@
       id="msg-{{item.id}}"
       class="message-item {{item.role === 'me' ? 'me' : 'ta'}}"
     >
-      <view 
-        class="bubble {{item.role === 'me' ? 'vermilion-ink' : 'black-ink'}} {{showDetailMap[item.id] ? 'show-detail' : ''}}"
-        bindtap="onMessageTap"
-        data-id="{{item.id}}"
-      >
-        <view class="reasoning-text" wx:if="{{(item.thinking || item.reasoning) && showDetailMap[item.id]}}">
-          <text class="reasoning-content">{{item.thinking || item.reasoning}}</text>
-        </view>
-        <text class="content serif-text">{{item.content}}</text>
-        <view wx:if="{{item.isLoading}}" class="loading-status">
-          <text class="loading-breathing">墨迹渐浓...</text>
-        </view>
-        <view class="timestamp">{{item.time}}</view>
+      <view class="bubble">
+        <text class="content">{{item.content}}</text>
       </view>
     </view>
-
-    <view id="bottom-view" style="height: 20rpx;"></view>
+    <!-- 占位底部，确保能滚到底 -->
+    <view id="bottom-view" style="height: 100rpx; width: 100%;"></view>
   </scroll-view>
 
   <view class="input-area">
-    <textarea 
-      class="chat-input serif-text" 
-      placeholder="于此案前，暂且收刀入鞘..." 
+    <input 
+      class="chat-input" 
+      placeholder="{{countdown > 0 ? '冷静中...' : '温柔低语...'}}" 
+      disabled="{{countdown > 0}}"
       value="{{inputValue}}"
       bindinput="onInputChange"
-      auto-height
-      fixed
-      cursor-spacing="20"
-      show-confirm-bar="{{false}}"
+      confirm-type="send"
+      bindconfirm="onSendClick"
+      cursor-spacing="40"
     />
-    <button class="send-btn serif-text" bindtap="onSendClick">止戈</button>
+    <view class="send-btn-cool" bindtap="onSendClick">止戈</view>
   </view>
 
-  <!-- 全局纸张纹理覆盖 -->
-  <view class="paper-texture"></view>
+  <!-- 装饰性背景波纹 -->
+  <view class="wave-bg"></view>
 </view>

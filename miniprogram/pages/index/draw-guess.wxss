@@ -243,3 +243,17 @@
 .finished .draw-canvas {
   opacity: 0.6;
 }
+
+.color-item[style="background-color: #FFFFFF"] {
+  border: 2rpx solid #E0D8C0;
+  position: relative;
+}
+.color-item[style="background-color: #FFFFFF"]::after {
+  content: "擦";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  color: #8C8C8C;
+}

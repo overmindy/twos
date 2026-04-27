@@ -1,0 +1,56 @@
+<!-- miniprogram/pages/archive/capsule/capsule.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="title">时间胶囊</text>
+    <text class="subtitle">致未来的我们</text>
+  </view>
+
+  <scroll-view scroll-y class="capsule-scroll">
+    <view class="capsule-list">
+      <view class="capsule-item {{item.canOpen ? 'openable' : 'locked'}}" wx:for="{{list}}" wx:key="_id" bindtap="onOpenCapsule" data-index="{{index}}">
+        <view class="capsule-icon">{{item.canOpen ? '✉️' : '🔒'}}</view>
+        <view class="capsule-info">
+          <text class="capsule-status">{{item.canOpen ? '可以开启了' : '封存于时光中'}}</text>
+          <text class="capsule-time">开启时间：{{item.openTimeStr}}</text>
+        </view>
+        <view class="arrow" wx:if="{{item.canOpen}}">></view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{list.length === 0}}">
+      <text class="empty-text">埋下一颗种子，等待时光开花</text>
+    </view>
+  </scroll-view>
+
+  <view class="footer-actions">
+    <button class="btn-create" bindtap="onShowCreate">埋下新的胶囊</button>
+  </view>
+
+  <!-- 创建弹窗 -->
+  <view class="modal-mask" wx:if="{{showCreate}}" bindtap="onHideCreate">
+    <view class="modal-content" catchtap="stopBubbling">
+      <text class="modal-title">致未来的寄语</text>
+      <textarea class="capsule-input" placeholder="写下你想对未来的 ta 说的话..." value="{{newContent}}" bindinput="onInputContent" maxlength="500"></textarea>
+      <view class="date-picker-wrap">
+        <text class="picker-label">开启日期：</text>
+        <picker mode="date" value="{{openDate}}" start="{{today}}" bindchange="onDateChange">
+          <view class="picker-value">{{openDate}}</view>
+        </picker>
+      </view>
+      <button class="btn-submit" bindtap="onSubmitCapsule">封存</button>
+    </view>
+  </view>
+
+  <!-- 开启展示弹窗 -->
+  <view class="modal-mask" wx:if="{{showOpen}}" bindtap="onHideOpen">
+    <view class="modal-content open-anim" catchtap="stopBubbling">
+      <text class="modal-title">跨越时光的回响</text>
+      <scroll-view scroll-y class="opened-content">
+        <text class="opened-text">{{openedContent}}</text>
+      </scroll-view>
+      <view class="opened-footer">
+        <text>—— 寄于 {{openedDate}}</text>
+      </view>
+    </view>
+  </view>
+</view>

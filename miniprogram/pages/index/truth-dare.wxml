@@ -1,0 +1,43 @@
+<!-- miniprogram/pages/index/truth-dare.wxml - Twos 2.0 AI Truth or Dare -->
+<view class="container {{theme}}">
+  <view class="paper-title-container">
+    <text class="page-title">灵魂拷问</text>
+    <view class="title-underline"></view>
+    <text class="page-subtitle">AI 汲取你们的墨迹，生成的专属谜题</text>
+  </view>
+
+  <view class="cards-area">
+    <view 
+      class="card-wrapper {{item.isFlipped ? 'flipped' : ''}}" 
+      wx:for="{{cards}}" 
+      wx:key="id"
+      bindtap="onFlipCard"
+      data-index="{{index}}"
+    >
+      <!-- 卡片正面 (题目) -->
+      <view class="card-face card-front">
+        <view class="card-type-tag {{item.type}}">{{item.type === 'truth' ? '真心话' : '大冒险'}}</view>
+        <view class="card-content">“{{item.content}}”</view>
+        <view class="card-footer-logo">TWOS AI</view>
+      </view>
+
+      <!-- 卡片背面 (盖着) -->
+      <view class="card-face card-back">
+        <view class="seal-icon">印</view>
+        <view class="back-pattern"></view>
+        <text class="tap-hint">点击揭缄</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="actions-section">
+    <button class="btn-refresh" bindtap="onRefreshCards" disabled="{{loading}}">
+      {{loading ? '信鸽衔信中...' : '换一批谜题'}}
+    </button>
+    <text class="action-hint">建议每人挑选一张，共同完成</text>
+  </view>
+
+  <view class="footer-seal" bindtap="goBack">
+    <text class="seal-text">返回游乐场</text>
+  </view>
+</view>

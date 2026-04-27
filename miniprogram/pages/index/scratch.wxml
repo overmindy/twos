@@ -1,20 +1,27 @@
+<!-- pages/index/scratch.wxml - Twos 2.0 Scratch Rebirth -->
 <view class="container">
   <view class="paper-title-container">
-    <text class="page-title">默契刮刮乐</text>
+    <text class="page-title">心动刮刮乐</text>
     <view class="title-underline"></view>
   </view>
 
   <view class="game-area {{isFinished ? 'finished' : ''}}">
-    <!-- 底层：展示的内容（如一句话或一个图片） -->
+    <!-- 底层：奖励 -->
     <view class="scratch-content">
-      <view class="secret-message {{isHeartbeating ? 'heartbeat' : ''}}">
-        <image class="heart-icon" src="../../images/icons/hug.png" mode="aspectFit"></image>
-        <text class="message-text">心有灵犀，墨迹传情</text>
-        <text class="completion-text" wx:if="{{isFinished}}">默契度 100%</text>
+      <view class="prize-card {{isHeartbeating ? 'heartbeat' : ''}}">
+        <block wx:if="{{prize}}">
+          <text class="prize-label">心动奖励</text>
+          <text class="prize-text">{{prize}}</text>
+        </block>
+        <block wx:else>
+          <image class="heart-icon" src="../../images/icons/hug.png" mode="aspectFit"></image>
+          <text class="message-text">拭去墨迹，见你所想</text>
+        </block>
+        <view class="stamp" wx:if="{{isFinished}}">已兑现</view>
       </view>
     </view>
 
-    <!-- 表层：刮刮乐 Canvas -->
+    <!-- 表层：Canvas -->
     <canvas 
       type="2d" 
       id="scratchCanvas" 
@@ -26,25 +33,39 @@
     ></canvas>
   </view>
 
-  <view class="game-info">
-    <view class="progress-container">
-      <text class="progress-label">探索进度</text>
+  <view class="controls-section">
+    <!-- 设置奖励区 (仅房主在准备阶段可见) -->
+    <view class="prize-setup" wx:if="{{gameStatus !== 'playing' && gameStatus !== 'finished' && isHost}}">
+      <view class="setup-hint">设置一个奖励，让 Ta 刮开</view>
+      <input 
+        class="prize-input" 
+        placeholder="如：洗碗一次、一个亲亲..." 
+        bindinput="onPrizeInput" 
+        value="{{prizeInput}}"
+        wx:if="{{!isMyReady}}"
+        maxlength="15"
+      />
+      <button class="btn-ready {{isMyReady ? 'ready' : ''}}" bindtap="handleReady">
+        {{isMyReady ? '已备好心意，等待 Ta' : '封缄奖励并准备'}}
+      </button>
+    </view>
+
+    <!-- 等待房主设置奖励 (仅客人可见) -->
+    <view class="prize-setup" wx:if="{{gameStatus !== 'playing' && gameStatus !== 'finished' && !isHost}}">
+      <view class="setup-hint">Ta 正在准备神秘奖励，请稍候...</view>
+      <button class="btn-ready" bindtap="handleReady" wx:if="{{!isMyReady}}">
+        我已准备好刮开
+      </button>
+      <button class="btn-ready ready" wx:else>
+        等待 Ta 锁定奖励...
+      </button>
+    </view>
+    
+    <view class="progress-info" wx:if="{{gameStatus === 'playing'}}">
       <view class="progress-bar">
         <view class="progress-inner" style="width: {{progress}}%"></view>
       </view>
-      <text class="progress-value">{{progress}}%</text>
-    </view>
-    
-    <view class="status-tips" wx:if="{{gameStatus === 'waiting'}}">
-      <text>等待另一半加入...</text>
-    </view>
-    <view class="status-tips" wx:elif="{{gameStatus === 'preparing'}}">
-      <button class="btn-ready {{isMyReady ? 'ready' : ''}}" bindtap="handleReady">
-        {{isMyReady ? '已就绪' : '准备开始'}}
-      </button>
-    </view>
-    <view class="status-tips" wx:elif="{{gameStatus === 'playing'}}">
-      <text>在纸上轻轻涂抹，同步你们的心跳</text>
+      <text class="progress-text">同步度 {{progress}}%</text>
     </view>
   </view>
 

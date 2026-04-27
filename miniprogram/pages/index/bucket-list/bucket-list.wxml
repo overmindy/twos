@@ -1,0 +1,50 @@
+<!-- pages/index/bucket-list/bucket-list.wxml - Twos 2.0 Shared Bucket List -->
+<view class="container">
+  <view class="header-section">
+    <text class="title">共同清单</text>
+    <view class="progress-box">
+      <text class="progress-text">已点亮 {{completedCount}} / {{totalCount}} 件小事</text>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{(completedCount/totalCount)*100}}%"></view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="list-scroll">
+    <view class="bucket-list">
+      <view 
+        class="bucket-item {{item.completed ? 'completed' : ''}}" 
+        wx:for="{{list}}" 
+        wx:key="_id"
+        bindtap="onToggleItem"
+        data-id="{{item._id}}"
+        data-index="{{index}}"
+      >
+        <view class="checkbox">
+          <view class="checkmark" wx:if="{{item.completed}}">✓</view>
+        </view>
+        <view class="item-body">
+          <text class="item-title">{{item.title}}</text>
+          <text class="item-time" wx:if="{{item.completed}}">点亮于 {{item.completedTimeStr}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 添加新心愿 -->
+  <view class="add-section">
+    <input 
+      class="add-input" 
+      placeholder="在此埋下一个心愿..." 
+      value="{{newItemTitle}}"
+      bindinput="onInputNewItem"
+      confirm-type="add"
+      bindconfirm="onAddItem"
+    />
+    <view class="add-btn" bindtap="onAddItem">＋</view>
+  </view>
+
+  <view class="footer-seal" bindtap="goBack">
+    <text class="seal-text">返回书卷</text>
+  </view>
+</view>

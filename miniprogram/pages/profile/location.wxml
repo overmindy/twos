@@ -1,0 +1,40 @@
+<view class="container map-page">
+  <map 
+    id="traceMap" 
+    class="trace-map" 
+    latitude="{{centerLat}}" 
+    longitude="{{centerLon}}" 
+    markers="{{markers}}" 
+    scale="14"
+    show-location
+  ></map>
+
+  <view class="location-footer">
+    <view class="info-card">
+      <view class="distance-info">
+        <text class="label">相距</text>
+        <view class="distance-val">
+          <text class="num">{{distance}}</text>
+          <text class="unit">km</text>
+        </view>
+      </view>
+      <view class="status-info">
+        <view class="user-loc-status">
+          <image class="mini-avatar" src="{{userInfo.avatarUrl || '/images/icons/happy.png'}}"></image>
+          <text>{{userInfo.nickname || '我'}} 的坐标已同步</text>
+        </view>
+        <view class="user-loc-status">
+          <image class="mini-avatar" src="{{partnerInfo.avatarUrl || '/images/icons/happy.png'}}"></image>
+          <text>{{partnerInfo.nickname || 'Ta'}} 的坐标：{{partnerLastUpdate || '等待同步'}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="action-bar">
+      <button class="btn-primary" bindtap="recenter">视野居中</button>
+      <button class="btn-outline" bindtap="syncNow">立即同步</button>
+    </view>
+  </view>
+  
+  <view class="back-link" bindtap="goBack">返回</view>
+</view>

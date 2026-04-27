@@ -1,18 +1,37 @@
 Page({
   data: {
     openid: '',
+    myNickname: '',
     isInvited: false
   },
 
   async onLoad(options) {
     // 获取当前用户 openid
     await this.getOpenId();
+    // 获取个人信息用于展示
+    this.fetchMyInfo();
 
     if (options.inviterId) {
       // 接收方进入，执行绑定逻辑
       console.log('Detected inviterId:', options.inviterId);
       this.setData({ isInvited: true });
       this.handleBind(options.inviterId);
+    }
+  },
+
+  async fetchMyInfo() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'getUserInfo' }
+      });
+      if (result && result.success && result.userInfo) {
+        this.setData({
+          myNickname: result.userInfo.nickname
+        });
+      }
+    } catch (e) {
+      console.error('获取个人信息失败', e);
     }
   },
 

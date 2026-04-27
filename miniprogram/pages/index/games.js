@@ -8,7 +8,8 @@ Page({
       'coin': '纸上抛硬币',
       'gobang': '纸上五子棋',
       'scratch': '默契刮刮乐',
-      'draw_guess': '你画我猜'
+      'draw_guess': '你画我猜',
+      'truth_dare': '灵魂拷问'
     }
   },
 
@@ -102,6 +103,18 @@ Page({
   goToDrawGuess() {
     wx.navigateTo({
       url: `/pages/index/draw-guess?relationshipId=${this.data.relationshipId}`,
+    });
+  },
+
+  goToTruthOrDare() {
+    wx.navigateTo({
+      url: `/pages/index/truth-dare?relationshipId=${this.data.relationshipId}`,
+    });
+  },
+
+  goToLeaderboard() {
+    wx.navigateTo({
+      url: '/pages/index/leaderboard/leaderboard',
     });
   }
 });

@@ -1,0 +1,42 @@
+<!-- pages/index/square/square.wxml - Twos 2.0 Anonymous Feed -->
+<view class="square-container">
+  <view class="square-header">
+    <text class="header-title">心动广场</text>
+    <text class="header-subtitle">书卷匿名，爱意无界</text>
+  </view>
+
+  <view class="post-list">
+    <view class="post-card {{item.isAnniversary ? 'post-anniversary' : ''}}" wx:for="{{posts}}" wx:key="_id">
+      <view class="anniversary-badge" wx:if="{{item.isAnniversary}}">成就 · 纪念日</view>
+      <view class="post-question">“{{item.questionContent}}”</view>
+      
+      <view class="post-answer">
+        <text class="answer-text">{{item.answerContent}}</text>
+        <!-- 图片动态展示 -->
+        <view class="answer-media" wx:if="{{item.answerType === 'image'}}">
+          <image class="media-img" src="{{item.mediaUrl}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{item.mediaUrl}}"></image>
+        </view>
+      </view>
+
+      <view class="post-footer">
+        <view class="author-info">
+          <image class="author-mood" src="../../../images/icons/{{item.mood}}.png" mode="aspectFit"></image>
+          <text class="author-name">{{item.authorNickname}}</text>
+        </view>
+        <view class="post-actions">
+          <view class="action-btn {{item.isLiked ? 'liked' : ''}}" bindtap="onToggleLike" data-id="{{item._id}}" data-index="{{index}}">
+            <text class="heart-icon">{{item.isLiked ? '♥' : '♡'}}</text>
+            <text class="like-count">{{item.likeCount || 0}}</text>
+          </view>
+          <button class="share-btn" open-type="share" data-post="{{item}}">
+            <image class="share-icon" src="../../../images/icons/quill.png" mode="aspectFit"></image>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{posts.length === 0}}">
+    <text>寂静之庭，等待第一篇书卷...</text>
+  </view>
+</view>

@@ -216,6 +216,36 @@ Page({
   },
 
   // 这里的 onTapIntersection 也需要更新 gameId 为 roomId
+
+  async resignGame() {
+    if (this.data.gameStatus !== 'playing') return;
+    
+    wx.showModal({
+      title: '弃子认负',
+      content: '君子落子无悔，是否确认认输？',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '收官中...' });
+          try {
+            // Find who is the winner (the other player)
+            const winner = this.data.myColor === 'black' ? 'white' : 'black';
+            await db.collection('game_rooms').doc(this.data.roomId).update({
+              data: {
+                status: 'FINISHED',
+                winner: winner
+              }
+            });
+          } catch (e) {
+             console.error(e);
+             wx.showToast({ title: '认输失败', icon: 'none' });
+          } finally {
+             wx.hideLoading();
+          }
+        }
+      }
+    });
+  },
+
   async onTapIntersection(e) {
     const { x, y } = e.currentTarget.dataset;
     const { board, currentTurn, myColor, gameStatus, roomId } = this.data;

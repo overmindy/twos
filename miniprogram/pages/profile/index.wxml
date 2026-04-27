@@ -32,6 +32,20 @@
     </view>
   </view>
 
+  
+  <!-- Stats Section -->
+  <view class="stats-section" wx:if="{{relationship}}">
+    <view class="stat-item">
+      <text class="stat-value">{{stats.daysTogether}}</text>
+      <text class="stat-label">相伴日</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.totalAnswers}}</text>
+      <text class="stat-label">共答卷</text>
+    </view>
+  </view>
+
   <view class="seal-wall">
     <!-- 装饰性墨迹 -->
     <view class="decoration-ink" style="top: 15%; left: 35%; opacity: 0.05;"></view>
@@ -48,37 +62,54 @@
     <!-- 个人设置印章 - 墨黑 -->
     <view class="seal-row">
       <view class="seal-group">
-        <view class="seal-item seal-ink" bindtap="onTapEdit">
+        <view class="seal-item seal-ink" bindtap="onTapEdit" data-type="nickname">
           <view class="seal-content">名</view>
         </view>
         <text class="seal-label">称谓</text>
       </view>
 
       <view class="seal-group">
-        <view class="seal-item seal-ink" bindtap="onTapEdit">
+        <view class="seal-item seal-ink" bindtap="onTapEdit" data-type="avatar">
           <view class="seal-content">容</view>
         </view>
         <text class="seal-label">貌样</text>
       </view>
 
       <view class="seal-group">
-        <view class="seal-item seal-ink" bindtap="onTapEdit">
+        <view class="seal-item seal-ink" bindtap="onTapEdit" data-type="mood">
           <view class="seal-content">意</view>
         </view>
         <text class="seal-label">心境</text>
       </view>
     </view>
 
-    <!-- 定位印章 - 朱砂红 (保留原功能但美化) -->
-    <view class="seal-group" style="margin-top: 60rpx;">
-      <view class="seal-item seal-vermilion" bindtap="onTapLocation">
-        <view class="seal-content">位</view>
+    <!-- 定位与总结印章 - 朱砂红 -->
+    <view class="seal-row" style="margin-top: 60rpx;">
+      <view class="seal-group">
+        <view class="seal-item seal-vermilion" bindtap="onTapLocation">
+          <view class="seal-content">位</view>
+        </view>
+        <text class="seal-label">踪迹</text>
       </view>
-      <text class="seal-label">踪迹</text>
+
+      <view class="seal-group" wx:if="{{relationship}}">
+        <view class="seal-item seal-vermilion" bindtap="onTapWrapped">
+          <view class="seal-content">志</view>
+        </view>
+        <text class="seal-label">年志</text>
+      </view>
     </view>
   </view>
 
   <view class="atmospheric-preview">
+    <!-- 成就勋章展示 -->
+    <view class="badge-section" wx:if="{{relationship.badges && relationship.badges.length > 0}}">
+      <view class="badge-item" wx:for="{{relationship.badges}}" wx:key="*this">
+        <text class="badge-icon">🎖️</text>
+        <text class="badge-name">{{item}}</text>
+      </view>
+    </view>
+
     <view class="mood-quote" wx:if="{{userInfo.mood}}">
       <text class="quote-mark">“</text>
       <text class="mood-text">{{userInfo.mood}}</text>
@@ -91,5 +122,24 @@
 
   <view class="footer">
     <text>由“两只”情感同步系统 诚制</text>
+  </view>
+
+  <!-- 灵魂动物选择器弹窗 -->
+  <view class="animal-picker-mask" wx:if="{{showAnimalPicker}}" bindtap="onCloseAnimalPicker">
+    <view class="animal-picker-content" catchtap="stopBubbling">
+      <view class="picker-header">
+        <text class="picker-title">择一灵魂而栖</text>
+        <view class="picker-divider"></view>
+      </view>
+      <view class="animal-list">
+        <view class="animal-item" wx:for="{{animalPairs}}" wx:key="name" bindtap="onSelectAnimal" data-animal="{{item.me}}">
+          <image class="animal-icon" src="../../images/icons/{{item.me}}.png" mode="aspectFit"></image>
+          <view class="animal-info">
+            <text class="animal-name">{{item.name}}</text>
+            <text class="animal-label">{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

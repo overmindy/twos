@@ -1,11 +1,33 @@
 /**app.wxss**/
 page {
-  background-color: #FDFCF8;
-  background-image: radial-gradient(#E0D8C0 0.5px, transparent 0.5px);
-  background-size: 20px 20px; /* 模拟极微弱的纸张网格感，或替换为噪声图 */
+  /* 默认主题：文艺浅色 */
+  --bg-color: #FDFCF8;
+  --bg-grid: #E0D8C0;
+  --text-main: #2F2F2F;
+  --text-sub: #8C8C8C;
+  --accent-color: #B22222;
+  --card-bg: #FFFFFF;
+  --border-color: rgba(178, 34, 34, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.02);
+
+  background-color: var(--bg-color);
+  background-image: radial-gradient(var(--bg-grid) 0.5px, transparent 0.5px);
+  background-size: 20px 20px;
   font-family: "LXGW WenKai", "Noto Serif SC", "Source Han Serif SC", "宋体", serif;
-  color: #2F2F2F;
+  color: var(--text-main);
   line-height: 1.6;
+}
+
+/* 深色模式：霓虹黛青 */
+page[data-theme='dark'] {
+  --bg-color: #0F172A;
+  --bg-grid: #1E293B;
+  --text-main: #F1F5F9;
+  --text-sub: #94A3B8;
+  --accent-color: #F43F5E; /* 更亮的霓虹红 */
+  --card-bg: #1E293B;
+  --border-color: rgba(244, 63, 94, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.2);
 }
 
 .paper-texture {

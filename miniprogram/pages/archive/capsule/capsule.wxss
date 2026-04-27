@@ -1,0 +1,183 @@
+/** capsule.wxss **/
+@import "../../../assets/fonts/serif-font.wxss";
+
+.container {
+  padding: 0;
+  background-color: #FDFCF8;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 60rpx 40rpx 40rpx;
+  background: #FFFFFF;
+  border-bottom: 1rpx solid #E0D8C0;
+}
+
+.title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 56rpx;
+  color: #B22222;
+  font-weight: 700;
+  letter-spacing: 8rpx;
+  display: block;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #8C8C8C;
+  margin-top: 10rpx;
+  font-style: italic;
+}
+
+.capsule-scroll {
+  flex: 1;
+  padding: 30rpx;
+  box-sizing: border-box;
+}
+
+.capsule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.capsule-item {
+  display: flex;
+  align-items: center;
+  padding: 40rpx;
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  border: 1rpx solid #F0EAD6;
+  box-shadow: 0 4rpx 15rpx rgba(0,0,0,0.02);
+  transition: all 0.3s;
+}
+
+.capsule-item.openable {
+  border-color: #B22222;
+  box-shadow: 0 10rpx 30rpx rgba(178, 34, 34, 0.1);
+}
+
+.capsule-item.locked {
+  opacity: 0.7;
+}
+
+.capsule-icon {
+  font-size: 60rpx;
+  margin-right: 30rpx;
+}
+
+.capsule-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.capsule-status {
+  font-family: "Noto Serif SC", serif;
+  font-size: 32rpx;
+  color: #2F2F2F;
+  margin-bottom: 8rpx;
+}
+
+.capsule-time {
+  font-size: 22rpx;
+  color: #8C8C8C;
+}
+
+/* 弹窗系统 */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8rpx);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  width: 85%;
+  background: #FFFFFF;
+  border-radius: 40rpx;
+  padding: 50rpx;
+  box-sizing: border-box;
+  box-shadow: 0 30rpx 80rpx rgba(0,0,0,0.2);
+}
+
+.modal-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 40rpx;
+  color: #B22222;
+  text-align: center;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+.capsule-input {
+  width: 100%;
+  height: 300rpx;
+  background: #F8F7F2;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  margin-bottom: 40rpx;
+}
+
+.date-picker-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0EAD6;
+  margin-bottom: 50rpx;
+}
+
+.picker-label { font-size: 28rpx; color: #8C8C8C; }
+.picker-value { font-size: 32rpx; color: #B22222; font-family: monospace; }
+
+.btn-submit, .btn-create {
+  background: #B22222 !important;
+  color: #FFFFFF !important;
+  border-radius: 40rpx;
+  font-family: "Noto Serif SC", serif;
+}
+
+.footer-actions {
+  padding: 40rpx;
+  background: #FFFFFF;
+  border-top: 1rpx solid #F0EAD6;
+}
+
+.opened-content {
+  max-height: 500rpx;
+  margin-bottom: 40rpx;
+}
+
+.opened-text {
+  font-size: 30rpx;
+  color: #2F2F2F;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.opened-footer {
+  text-align: right;
+  font-size: 24rpx;
+  color: #8C8C8C;
+  font-style: italic;
+  border-top: 1rpx solid #F8F7F2;
+  padding-top: 20rpx;
+}
+
+@keyframes openPop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.open-anim {
+  animation: openPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}

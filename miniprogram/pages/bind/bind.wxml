@@ -1,9 +1,47 @@
+<!-- bind.wxml - Twos 2.0 Ticket Rebirth -->
 <view class="container">
-  <view class="card">
-    <view class="seal">印</view>
-    <view class="title">两只(TWOS)</view>
-    <view class="content">诚邀您共同书写私人手札</view>
-    <button class="btn-bind" open-type="share">发送邀请</button>
-    <view class="hint" wx:if="{{isInvited}}">正在绑定中...</view>
+  <view class="ticket">
+    <!-- 票头 -->
+    <view class="ticket-header">
+      <view class="logo-text">TWOS</view>
+    </view>
+
+    <!-- 票身 -->
+    <view class="ticket-body">
+      <view class="info-row">
+        <view class="info-item">
+          <text class="label">出发时间 / Departure</text>
+          <text class="value">当下 / Now</text>
+        </view>
+        <view class="info-item" style="text-align: right;">
+          <text class="label">席位 / Class</text>
+          <text class="value">私藏 / Private</text>
+        </view>
+      </view>
+
+      <view class="info-item">
+        <text class="label">目的地 / Destination</text>
+        <text class="value destination">Ta 的心里</text>
+      </view>
+
+      <view class="info-row">
+        <view class="info-item">
+          <text class="label">乘客 / Passenger</text>
+          <text class="value">{{myNickname || '书写者'}}</text>
+        </view>
+        <view class="info-item" style="text-align: right;">
+          <text class="label">登机口 / Gate</text>
+          <text class="value">壹号灵魂</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 票尾 -->
+    <view class="ticket-footer">
+      <view class="barcode"></view>
+      <button class="btn-invite" open-type="share">签发并投递邀请</button>
+      <view class="hint-text" wx:if="{{isInvited}}">书卷正在飞往对方手中...</view>
+      <view class="hint-text" wx:else>点击按钮，邀请另一半加入手札</view>
+    </view>
   </view>
 </view>

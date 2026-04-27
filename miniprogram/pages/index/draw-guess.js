@@ -13,13 +13,14 @@ Page({
     guessInput: '',
     currentColor: '#333333',
     currentBrush: 4,
-    colors: ['#333333', '#B22222', '#1890ff', '#52c41a', '#faad14'],
+    colors: ['#333333', '#B22222', '#1890ff', '#52c41a', '#faad14', '#FFFFFF'],
     brushes: [
       { size: 2 },
       { size: 4 },
       { size: 8 }
     ],
-    watcher: null
+    watcher: null,
+    isReplaying: false
   },
 
   // 非数据绑定变量
@@ -316,6 +317,8 @@ Page({
   },
 
   async refreshWord() {
+    this.clearCanvas();
+
     if (!this.data.isDrawer) return;
     wx.showLoading({ title: '换题中...' });
     try {
@@ -404,6 +407,31 @@ Page({
     } catch (e) {
       console.error('Failed to finish game', e);
     }
+  },
+
+  async startReplay() {
+    if (this.data.isReplaying || !this.data.room || !this.data.room.gameState.data.paths) return;
+    
+    const paths = this.data.room.gameState.data.paths;
+    if (paths.length === 0) return;
+
+    this.setData({ isReplaying: true });
+    this.clearCanvasLocal();
+    this.lastDrawnPathIndex = -1;
+
+    for (let i = 0; i < paths.length; i++) {
+      const path = paths[i];
+      if (path.type === 'clear') {
+        this.clearCanvasLocal();
+      } else {
+        // 模拟笔触绘制速度
+        await new Promise(resolve => setTimeout(resolve, 300));
+        this.drawPath(path);
+      }
+    }
+
+    this.setData({ isReplaying: false });
+    wx.showToast({ title: '时光重演结束', icon: 'none' });
   },
 
   goBack() {

@@ -1,72 +1,173 @@
-/* pages/archive/index.wxss */
+/** archive.wxss - Twos 2.0 Timeline Rebirth **/
+
+@import "../../assets/fonts/serif-font.wxss";
 
 .archive-book {
-  padding: 40rpx 50rpx;
+  padding: 40rpx 32rpx;
   background-color: #FDFCF8;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
 .book-header {
   text-align: center;
-  margin-bottom: 60rpx;
+  margin-bottom: 80rpx;
   border-bottom: 1rpx solid #E0D8C0;
-  padding-bottom: 30rpx;
+  padding-bottom: 40rpx;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  position: relative;
+}
+
+.search-entry {
+  font-size: 36rpx;
+  opacity: 0.6;
+  padding: 10rpx;
 }
 
 .book-title {
-  font-size: 48rpx;
-  font-weight: 600;
-  letter-spacing: 4rpx;
-  color: #2F2F2F;
+  font-family: "Noto Serif SC", serif;
+  font-size: 56rpx;
+  font-weight: 700;
+  letter-spacing: 12rpx;
+  color: #B22222;
 }
 
 .book-subtitle {
   font-size: 20rpx;
   color: #8C8C8C;
   text-transform: uppercase;
-  letter-spacing: 2rpx;
+  letter-spacing: 4rpx;
   margin-top: 10rpx;
 }
 
-.archive-scroll {
-  flex: 1;
-  overflow: hidden;
+/* 情绪日历样式 */
+.mood-calendar-section {
+  padding: 30rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #F0F0F0;
+  border-radius: 20rpx;
+  margin-bottom: 40rpx;
 }
 
-.archive-item {
-  margin-bottom: 60rpx;
-  position: relative;
-}
-
-.date-tag {
-  font-size: 24rpx;
-  color: #B22222; /* 红色朱砂印感 */
-  font-family: monospace;
+.section-title-mini {
+  font-family: "Noto Serif SC", serif;
+  font-size: 22rpx;
+  color: #8C8C8C;
   margin-bottom: 20rpx;
-  opacity: 0.8;
+  letter-spacing: 2rpx;
 }
 
-.qa-pair {
-  padding-left: 20rpx;
-  border-left: 1rpx solid #E0D8C0;
+.calendar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6rpx;
+  max-width: 100%;
+}
+
+.calendar-block {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 3rpx;
+  background: #F9F9F9;
+}
+
+.calendar-block.mood-none { background: #F9F9F9; }
+.calendar-block.mood-happy { background: #FFD93D; } /* 暖黄 */
+.calendar-block.mood-work { background: #607D8B; }  /* 蓝灰 */
+.calendar-block.mood-tired { background: #9E9E9E; } /* 纯灰 */
+.calendar-block.mood-hug { background: #FF8AAE; }   /* 柔粉 */
+
+/* 时间轴主体 */
+.timeline-container {
+  position: relative;
+  padding-left: 60rpx;
+}
+
+/* 垂直长轴线 */
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 28rpx;
+  width: 2rpx;
+  height: 100%;
+  background: linear-gradient(to bottom, #B22222 0%, #E0D8C0 100%);
+  opacity: 0.3;
+}
+
+.month-header {
+  font-family: "Noto Serif SC", serif;
+  font-size: 32rpx;
+  color: #2F2F2F;
+  margin: 60rpx 0 40rpx -40rpx;
+  background: #FDFCF8;
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  border: 1rpx solid #E0D8C0;
+  position: relative;
+  z-index: 5;
+}
+
+.timeline-node {
+  position: relative;
+  margin-bottom: 80rpx;
+  animation: fadeInNode 0.8s ease-out both;
+}
+
+@keyframes fadeInNode {
+  from { opacity: 0; transform: translateX(20rpx); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 节点圆点 */
+.node-dot {
+  position: absolute;
+  left: -44rpx;
+  top: 10rpx;
+  width: 24rpx;
+  height: 24rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #B22222;
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 0 0 10rpx rgba(178, 34, 34, 0.2);
+}
+
+.node-date {
+  font-size: 22rpx;
+  color: #B22222;
+  font-weight: 700;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+/* 节点卡片样式 */
+.node-card {
+  background: #FFFFFF;
+  border: 1rpx solid rgba(178, 34, 34, 0.05);
+  border-radius: 4rpx; /* 保持硬朗的纸张感 */
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.02);
 }
 
 .question-box {
   margin-bottom: 30rpx;
-}
-
-.question-mark {
-  color: #8C8C8C;
-  font-size: 32rpx;
+  border-bottom: 1rpx solid #F8F7F2;
+  padding-bottom: 20rpx;
 }
 
 .question-content {
+  font-family: "Noto Serif SC", serif;
   font-size: 30rpx;
-  font-weight: 500;
+  font-weight: 600;
   color: #2F2F2F;
+  line-height: 1.4;
 }
 
 .answers-container {
@@ -77,127 +178,55 @@
 
 .answer-item {
   display: flex;
-  font-size: 28rpx;
-  line-height: 1.6;
-  align-items: flex-start;
+  gap: 20rpx;
 }
 
-.answer-label {
-  color: #8C8C8C;
-  min-width: 60rpx;
-  flex-shrink: 0;
-  margin-top: 4rpx;
+.user-avatar-mini {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #F8F7F2;
 }
 
-.answer-content-wrapper {
+.answer-body {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
 }
 
-/* 极简多模态显示 */
+.answer-text {
+  font-size: 26rpx;
+  color: #5C5C5C;
+  line-height: 1.6;
+}
+
+/* 多模态资源 */
 .polaroid-mini {
-  width: 160rpx;
+  width: 140rpx;
   background: #FFFFFF;
-  padding: 8rpx 8rpx 32rpx 8rpx;
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.06);
+  padding: 8rpx 8rpx 24rpx 8rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05);
   border: 1rpx solid #E0D8C0;
-  transform: rotate(-1deg);
+  margin-top: 10rpx;
 }
 
 .polaroid-img-mini {
   width: 100%;
-  height: 140rpx;
-  background: #F9F9F9;
-  display: block;
+  height: 120rpx;
 }
 
-.voice-seal-mini {
-  width: 80rpx;
-  height: 80rpx;
-  border: 2rpx solid #B22222;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  background: rgba(178, 34, 34, 0.03);
-}
-
-.voice-seal-inner-mini {
-  width: 64rpx;
-  height: 64rpx;
-  border: 1rpx solid #B22222;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0.5;
-}
-
-.mic-icon-mini {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.answer-text {
-  color: #444;
-  word-break: break-all;
-}
-
-.my-answer .answer-text {
-  color: #2F2F2F;
-}
-
-.partner-answer .answer-text {
-  color: #2F2F2F;
-  font-style: italic; /* 对方的字体稍作区别，类似草草记下的笔记 */
-}
-
-.empty-hint {
-  font-size: 24rpx;
-  color: #8C8C8C;
-  font-style: italic;
-}
-
-.private-hint {
-  font-style: italic;
-  font-size: 24rpx;
-  color: #8C8C8C;
-}
-
-.answer-content-wrapper.partner-private {
-  filter: blur(8rpx);
-  opacity: 0.6;
-}
-
-.answer-content-wrapper.my-private .answer-text {
-  color: #B22222;
-  opacity: 0.8;
-}
-
-.item-separator {
-  margin-top: 40rpx;
-  height: 2rpx;
-  background: radial-gradient(circle, #E0D8C0 0%, transparent 70%);
-  width: 100%;
+.book-footer {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #E0D8C0;
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
 }
 
 .loading-state, .empty-state {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex: 1;
+  min-height: 400rpx;
   color: #8C8C8C;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-style: italic;
-}
-
-.book-footer {
-  text-align: center;
-  padding-top: 30rpx;
-  font-size: 22rpx;
-  color: #E0D8C0;
-  letter-spacing: 2rpx;
 }

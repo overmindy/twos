@@ -89,7 +89,12 @@
     </view>
     <view class="status-tips" wx:elif="{{gameStatus === 'finished'}}">
       <text class="win-text">心有灵犀！答案是：{{targetWord}}</text>
-      <button class="btn-restart" bindtap="handleReady">再来一局</button>
+      <view class="finish-actions">
+        <button class="btn-replay" bindtap="startReplay" disabled="{{isReplaying}}">
+          {{isReplaying ? '溯流中...' : '回看笔触'}}
+        </button>
+        <button class="btn-restart" bindtap="handleReady">再来一局</button>
+      </view>
     </view>
   </view>
 

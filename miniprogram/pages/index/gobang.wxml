@@ -50,6 +50,7 @@
     </view>
     <view wx:else class="turn-msg">
       <text>{{currentTurn === myColor ? '轮到你了' : '对方思考中...'}}</text>
+      <button class="btn-resign" bindtap="resignGame" wx:if="{{gameStatus === 'playing'}}">认负</button>
     </view>
   </view>
 

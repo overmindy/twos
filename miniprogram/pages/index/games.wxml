@@ -1,64 +1,74 @@
+<!-- miniprogram/pages/index/games.wxml -->
 <view class="container">
-  <!-- 背景艺术：信纸边框或晕染 (可选) -->
   <view class="paper-title-container">
     <text class="page-title">手札游戏</text>
     <view class="title-underline"></view>
   </view>
 
-  <view class="game-list">
-    <!-- 纸上抛硬币 -->
-    <view class="game-card" bindtap="goToCoinFlip">
-      <view class="card-inner">
-        <view class="game-icon">
-          <image class="game-icon-img" src="../../images/icons/hourglass.png" mode="aspectFit"></image>
-        </view>
-        <view class="game-info">
-          <text class="game-name">纸上抛硬币</text>
-          <text class="game-desc">墨色一掷，听天由命的温柔</text>
-        </view>
-        <view class="arrow-seal">印</view>
+  <view class="game-bento-grid">
+    <!-- 你画我猜 2.0 (Hero size) -->
+    <view class="game-bento-item game-large" bindtap="goToDrawGuess">
+      <view class="game-icon-large">
+        <image class="game-icon-large" src="../../images/icons/quill.png" mode="aspectFit"></image>
+      </view>
+      <view class="game-info-large">
+        <text class="game-name">你画我猜 2.0</text>
+        <text class="game-desc">实时轨迹追踪，心有灵犀一点通</text>
       </view>
     </view>
 
-    <!-- 纸上五子棋 -->
-    <view class="game-card" bindtap="goToGobang">
-      <view class="card-inner">
-        <view class="game-icon">
-          <image class="game-icon-img" src="../../images/icons/game.png" mode="aspectFit"></image>
-        </view>
-        <view class="game-info">
-          <text class="game-name">纸上五子棋</text>
-          <text class="game-desc">横竖经纬间，落子皆是你</text>
-        </view>
-        <view class="arrow-seal">印</view>
+    <!-- 真心话大冒险 (AI版) -->
+    <view class="game-bento-item game-medium" bindtap="goToTruthOrDare">
+      <view class="game-icon-medium">
+        <image class="game-icon-medium" src="../../images/icons/happy.png" mode="aspectFit"></image>
+      </view>
+      <view class="game-info-medium">
+        <text class="game-name">灵魂拷问</text>
+        <text class="game-desc">AI 深度定制的大冒险</text>
       </view>
     </view>
 
     <!-- 默契刮刮乐 -->
-    <view class="game-card" bindtap="goToScratch">
-      <view class="card-inner">
-        <view class="game-icon">
-          <image class="game-icon-img" src="../../images/icons/quill.png" mode="aspectFit"></image>
-        </view>
-        <view class="game-info">
-          <text class="game-name">默契刮刮乐</text>
-          <text class="game-desc">刮开纸上的秘密，同步你们的心跳</text>
-        </view>
-        <view class="arrow-seal">印</view>
+    <view class="game-bento-item game-medium" bindtap="goToScratch">
+      <view class="game-icon-medium">
+        <image class="game-icon-medium" src="../../images/icons/hug.png" mode="aspectFit"></image>
+      </view>
+      <view class="game-info-medium">
+        <text class="game-name">默契刮刮乐</text>
+        <text class="game-desc">刮开纸上的秘密奖励</text>
       </view>
     </view>
 
-    <!-- 你画我猜 -->
-    <view class="game-card" bindtap="goToDrawGuess">
-      <view class="card-inner">
-        <view class="game-icon">
-          <image class="game-icon-img" src="../../images/icons/voice.png" mode="aspectFit"></image>
-        </view>
-        <view class="game-info">
-          <text class="game-name">你画我猜</text>
-          <text class="game-desc">我的笔尖，连着你的直觉</text>
-        </view>
-        <view class="arrow-seal">印</view>
+    <!-- 纸上抛硬币 -->
+    <view class="game-bento-item game-medium" bindtap="goToCoinFlip">
+      <view class="game-icon-medium">
+        <image class="game-icon-medium" src="../../images/icons/hourglass.png" mode="aspectFit"></image>
+      </view>
+      <view class="game-info-medium">
+        <text class="game-name">抛硬币</text>
+        <text class="game-desc">听天由命的温柔</text>
+      </view>
+    </view>
+
+    <!-- 纸上五子棋 -->
+    <view class="game-bento-item game-medium" bindtap="goToGobang">
+      <view class="game-icon-medium">
+        <image class="game-icon-medium" src="../../images/icons/game.png" mode="aspectFit"></image>
+      </view>
+      <view class="game-info-medium">
+        <text class="game-name">五子棋</text>
+        <text class="game-desc">落子皆是你</text>
+      </view>
+    </view>
+
+    <!-- 全网排行榜 -->
+    <view class="game-bento-item game-medium" bindtap="goToLeaderboard">
+      <view class="game-icon-medium">
+        <text style="font-size: 40rpx;">🏆</text>
+      </view>
+      <view class="game-info-medium">
+        <text class="game-name">全网排行</text>
+        <text class="game-desc">看看谁的羁绊最深厚</text>
       </view>
     </view>
   </view>
@@ -79,7 +89,7 @@
         <view class="history-info-bottom">
           <view class="history-winner">
             <text class="winner-label">胜者:</text>
-            <text class="winner-name">{{item.winner || '无'}}</text>
+            <text class="winner-name">{{item.winnerName || '无'}}</text>
           </view>
           <view class="history-duration">
             <text class="duration-label">耗时:</text>

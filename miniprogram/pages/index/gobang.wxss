@@ -348,3 +348,21 @@
   border: 1px solid #8C8C8C !important;
   color: #666 !important;
 }
+
+.btn-resign {
+  font-size: 24rpx;
+  color: #8C8C8C;
+  background: transparent;
+  border: 1rpx solid #E0D8C0;
+  border-radius: 6rpx;
+  padding: 4rpx 16rpx;
+  margin-left: 20rpx;
+  line-height: 1.5;
+  display: inline-block;
+  vertical-align: middle;
+}
+.turn-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -28,7 +28,8 @@ Page({
       today: this.formatDate(new Date())
     });
     this.fetchQuestion();
-    this.initRecorder();
+    // 暂时注释掉录音初始化，因缺少录音接口权限
+    // this.initRecorder();
     this.getOpenId();
   },
 
@@ -50,6 +51,7 @@ Page({
     });
   },
 
+  /* 暂时注释掉录音相关逻辑，因缺少录音接口权限
   initRecorder() {
     this.recorderManager = wx.getRecorderManager();
     this.recorderManager.onStart(() => {
@@ -73,6 +75,7 @@ Page({
       this.setData({ isRecording: false });
     });
   },
+  */
 
   fetchQuestion() {
     wx.cloud.callFunction({
@@ -366,6 +369,7 @@ Page({
     }
   },
 
+  /* 暂时注释掉录音相关操作，因缺少录音接口权限
   onStartRecord() {
     console.log('长按触发：onStartRecord');
     if (this.data.isAnswered || this.data.isRecording) return;
@@ -439,4 +443,5 @@ Page({
       isRecording: false
     });
   }
+  */
 });
